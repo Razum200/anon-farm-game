@@ -392,7 +392,7 @@ class AnonFarm {
             await this.submitStatsToAPI();
             
             // Запрашиваем глобальный топ через API  
-            const response = await fetch('http://localhost:5000/api/leaderboard', {
+            const response = await fetch('http://localhost:8000/api/leaderboard', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -470,7 +470,7 @@ class AnonFarm {
         };
 
         try {
-            await fetch('http://localhost:5000/api/submit_stats', {
+            await fetch('http://localhost:8000/api/submit_stats', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
