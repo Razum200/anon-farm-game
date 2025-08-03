@@ -389,10 +389,7 @@ class AnonFarm {
         }
         
         try {
-            // Отправляем статистику перед запросом топа
-            await this.submitStatsToAPI();
-            
-            // Запрашиваем глобальный топ через API с таймаутом
+            // Запрашиваем глобальный топ через API с таймаутом (статистику отправим отдельно)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 секунд таймаут
             
@@ -427,7 +424,30 @@ class AnonFarm {
                     } else {
                         alert(message);
                     }
+                    
+                    // Отправляем статистику в фоне после показа топа
+                    this.submitStatsToAPI().catch(err => console.log('Ошибка отправки статистики:', err));
                     return;
+                } else if (data.success) {
+                    // API работает, но топ пустой
+                    const emptyMessage = '🏆 ANON Farm - Глобальный топ игроков\n\n' +
+                                       '📊 Пока нет активных игроков\n' +
+                                       '🚀 Станьте первым в топе!\n\n' +
+                                       '💡 Играйте больше чтобы попасть в рейтинг\n\n' +
+                                       '🔥 Stay $ANON!';
+                    
+                    if (this.tg && this.tg.showAlert) {
+                        this.tg.showAlert(emptyMessage);
+                    } else {
+                        alert(emptyMessage);
+                    }
+                    
+                    // Отправляем статистику в фоне
+                    this.submitStatsToAPI().catch(err => console.log('Ошибка отправки статистики:', err));
+                    return;
+                } else {
+                    // API вернул success: false
+                    throw new Error(`API Error: ${data.error || 'Unknown error'}`);
                 }
             } else {
                 // HTTP ошибка (не 200 статус)
@@ -436,20 +456,36 @@ class AnonFarm {
         } catch (error) {
             console.log('Ошибка получения глобального топа:', error);
             
-            // Показываем сообщение о проблеме с API
+            // Определяем тип ошибки для более точного сообщения
+            let errorType = 'Неизвестная ошибка';
+            if (error.name === 'AbortError') {
+                errorType = 'Превышен таймаут (10 секунд)';
+            } else if (error.message.includes('HTTP Error')) {
+                errorType = error.message;
+            } else if (error.message.includes('API Error')) {
+                errorType = error.message;
+            } else if (error.message.includes('fetch')) {
+                errorType = 'Ошибка сети';
+            }
+            
+            // Показываем подробное сообщение о проблеме
             const errorMessage = '🏆 ANON Farm - Топ игроков\n\n' +
-                               '⚠️ Облачный API недоступен\n' +
-                               '🌐 URL: anon-farm-api.vercel.app\n' +
-                               '🔧 Возможно временные проблемы\n\n' +
+                               '⚠️ Не удалось загрузить глобальный топ\n\n' +
+                               `🔍 Причина: ${errorType}\n` +
+                               '🌐 API: anon-farm-api.vercel.app\n\n' +
                                '📱 Показываем локальный топ:\n\n' +
                                this.getLocalTopText() +
-                               '\n\n🔥 Stay $ANON!';
+                               '\n\n💡 Попробуйте ещё раз через минуту\n' +
+                               '🔥 Stay $ANON!';
             
             if (this.tg && this.tg.showAlert) {
                 this.tg.showAlert(errorMessage);
             } else {
                 alert(errorMessage);
             }
+            
+            // Отправляем статистику в фоне даже при ошибке
+            this.submitStatsToAPI().catch(err => console.log('Ошибка отправки статистики:', err));
             return;
         }
         
