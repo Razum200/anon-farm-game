@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
-import requests
+# import requests  # Отключаем пока
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
@@ -98,8 +98,9 @@ def save_stats_to_gist():
     except Exception as e:
         print(f"❌ Ошибка сохранения в Gist: {e}")
 
-# Загружаем статистику при запуске
-load_stats_from_gist()
+# Загружаем статистику при запуске (пока отключаем GitHub)
+# load_stats_from_gist()
+print("🚀 API запущен в тестовом режиме")
 
 def format_number(num):
     """Форматирование чисел"""
@@ -140,14 +141,14 @@ class handler(BaseHTTPRequestHandler):
             
             # Главная страница
             if path == '/' or path == '/api':
-                # При каждом пинге - перезагружаем из GitHub Gist
-                load_stats_from_gist()
+                # Тестовый режим - без GitHub
+                # load_stats_from_gist()
                 
-                print(f"🏓 API пинг получен - {len(players_stats)} игроков из Gist")
+                print(f"🏓 API пинг получен - {len(players_stats)} игроков в памяти (тест)")
                 
                 data = {
                     'message': 'ANON Farm Leaderboard API',
-                    'version': '6.0-github-gist-secure',
+                    'version': '6.1-test-mode-without-github',
                     'status': 'running on Vercel ✅',
                     'game_url': 'https://razum200.github.io/anon-farm-game/',
                     'endpoints': {
@@ -164,10 +165,10 @@ class handler(BaseHTTPRequestHandler):
             
             # Топ игроков
             elif path == '/api/leaderboard':
-                # ПРИНУДИТЕЛЬНО загружаем актуальную статистику из GitHub Gist
-                load_stats_from_gist()
+                # Тестовый режим - без GitHub
+                # load_stats_from_gist()
                 
-                print(f"📊 Отдаем топ: {len(players_stats)} игроков из Gist")
+                print(f"📊 Отдаем топ: {len(players_stats)} игроков из памяти (тест)")
                 
                 # Сортируем игроков по токенам
                 sorted_players = sorted(
@@ -267,8 +268,9 @@ class handler(BaseHTTPRequestHandler):
                     'last_update': datetime.now().isoformat()
                 }
                 
-                # Сохраняем в GitHub Gist
-                save_stats_to_gist()
+                # Тестовый режим - сохранение в память
+                # save_stats_to_gist()
+                print(f"💾 Игрок сохранен в памяти (тест): {name} - {tokens} токенов")
                 
                 # Отправляем ответ
                 self.send_response(200)
