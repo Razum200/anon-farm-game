@@ -1,53 +1,12 @@
 from http.server import BaseHTTPRequestHandler
 import json
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
-# Файл для постоянного хранения
-STATS_FILE = '/tmp/anon_farm_stats.json'
-
-# Глобальное хранилище игроков
+# Глобальное хранилище игроков (постоянное в памяти)
 players_stats = {}
 
-def load_stats():
-    """Загружаем статистику из файла"""
-    global players_stats
-    try:
-        if os.path.exists(STATS_FILE):
-            with open(STATS_FILE, 'r', encoding='utf-8') as f:
-                players_stats = json.load(f)
-            print(f"📊 Загружено {len(players_stats)} игроков из файла")
-        else:
-            players_stats = {}
-            print("📊 Создан новый файл статистики")
-    except Exception as e:
-        print(f"❌ Ошибка загрузки статистики: {e}")
-        players_stats = {}
-
-def save_stats():
-    """Сохраняем статистику в файл"""
-    try:
-        # Очищаем старых игроков (неактивных больше 24 часов)
-        cutoff_time = datetime.now() - timedelta(hours=24)
-        active_players = {}
-        
-        for player_id, player_data in players_stats.items():
-            last_update = datetime.fromisoformat(player_data.get('last_update', datetime.now().isoformat()))
-            if last_update > cutoff_time:
-                active_players[player_id] = player_data
-        
-        players_stats.clear()
-        players_stats.update(active_players)
-        
-        with open(STATS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(players_stats, f, ensure_ascii=False, indent=2)
-        print(f"💾 Сохранено {len(players_stats)} активных игроков")
-    except Exception as e:
-        print(f"❌ Ошибка сохранения: {e}")
-
-# Загружаем статистику при запуске
-load_stats()
+# Убрали функцию очистки - топ должен хранить ВСЕХ игроков навсегда!
 
 def format_number(num):
     """Форматирование чисел"""
@@ -88,9 +47,11 @@ class handler(BaseHTTPRequestHandler):
             
             # Главная страница
             if path == '/' or path == '/api':
+                print(f"🏓 API пинг получен - {len(players_stats)} игроков в памяти")
+                
                 data = {
                     'message': 'ANON Farm Leaderboard API',
-                    'version': '2.0-vercel-http',
+                    'version': '3.0-memory-with-ping',
                     'status': 'running on Vercel ✅',
                     'game_url': 'https://razum200.github.io/anon-farm-game/',
                     'endpoints': {
@@ -107,9 +68,6 @@ class handler(BaseHTTPRequestHandler):
             
             # Топ игроков
             elif path == '/api/leaderboard':
-                # Загружаем актуальную статистику
-                load_stats()
-                
                 # Сортируем игроков по токенам
                 sorted_players = sorted(
                     players_stats.values(),
@@ -207,9 +165,6 @@ class handler(BaseHTTPRequestHandler):
                     'level': level,
                     'last_update': datetime.now().isoformat()
                 }
-                
-                # Сохраняем в файл
-                save_stats()
                 
                 # Отправляем ответ
                 self.send_response(200)

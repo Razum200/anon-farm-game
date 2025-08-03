@@ -173,6 +173,12 @@ class AnonFarm {
             this.sendPlayerStats();
             this.submitStatsToAPI();
         }, 10000);
+
+        // Пинг API каждые 20 минут чтобы не засыпал
+        setInterval(() => {
+            console.log('🏓 Пинг API чтобы не засыпал...');
+            this.pingAPI();
+        }, 1200000); // 20 минут
         
         console.log('Игра ANON Farm запущена!');
     }
@@ -931,6 +937,33 @@ class AnonFarm {
             }
         } catch (error) {
             container.innerHTML = '<p>❌ Ошибка загрузки топа по уровням</p>';
+        }
+    }
+
+    // Пинг API чтобы не засыпал
+    async pingAPI() {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            const response = await fetch('https://anon-farm-api.vercel.app/', {
+                method: 'GET',
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                console.log('🏓 API пинг успешен - сервер не заснет');
+            } else {
+                console.log('⚠️ API пинг - неожиданный ответ:', response.status);
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.log('⏰ API пинг - таймаут 5 секунд');
+            } else {
+                console.log('❌ API пинг - ошибка сети:', error.message);
+            }
         }
     }
 }
