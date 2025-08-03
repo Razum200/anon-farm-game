@@ -1,51 +1,105 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import requests
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
-# Файл для хранения между запросами функции
+# Настройки GitHub Gist (токен из переменной окружения)
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
+GIST_ID = '0bbf93ba7dc734609f50be0e06c6ce94'
+GIST_FILENAME = 'anon-farm-leaderboard.json'
+
+# Файл для локального хранения (резерв)
 STATS_FILE = '/tmp/anon_farm_stats.json'
 
-# Глобальное хранилище игроков (постоянное в памяти + файл)
+# Глобальное хранилище игроков
 players_stats = {}
 
-def load_stats():
-    """Загружаем статистику из файла"""
+def load_stats_from_gist():
+    """Загружаем статистику из GitHub Gist"""
     global players_stats
     try:
-        if os.path.exists(STATS_FILE):
-            # Проверяем размер файла
-            file_size = os.path.getsize(STATS_FILE)
-            print(f"📄 Файл найден, размер: {file_size} байт")
-            
-            with open(STATS_FILE, 'r', encoding='utf-8') as f:
-                loaded_data = json.load(f)
-                players_stats = loaded_data
-            print(f"📊 Загружено {len(players_stats)} игроков из файла")
-            
-            # Показываем первых 3 игроков для отладки
-            if players_stats:
-                top_players = list(players_stats.keys())[:3]
-                print(f"🏆 Топ игроки в файле: {top_players}")
-        else:
+        if not GITHUB_TOKEN:
+            print("⚠️ GitHub токен не найден, используем локальную память")
             players_stats = {}
-            print("📊 Файл не найден, создан новый словарь")
+            return
+            
+        print("🌐 Загружаем данные из GitHub Gist...")
+        
+        headers = {
+            'Authorization': f'token {GITHUB_TOKEN}',
+            'Accept': 'application/vnd.github.v3+json'
+        }
+        
+        response = requests.get(f'https://api.github.com/gists/{GIST_ID}', headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            gist_data = response.json()
+            
+            if GIST_FILENAME in gist_data['files']:
+                content = gist_data['files'][GIST_FILENAME]['content']
+                
+                if content.strip():
+                    players_stats = json.loads(content)
+                    print(f"📊 Загружено {len(players_stats)} игроков из Gist")
+                    
+                    # Показываем первых 3 игроков для отладки
+                    if players_stats:
+                        top_players = list(players_stats.keys())[:3]
+                        print(f"🏆 Топ игроки в Gist: {top_players}")
+                else:
+                    players_stats = {}
+                    print("📊 Gist пустой, создан новый словарь")
+            else:
+                players_stats = {}
+                print("📊 Файл в Gist не найден, создан новый словарь")
+        else:
+            print(f"❌ Ошибка загрузки Gist: HTTP {response.status_code}")
+            players_stats = {}
+            
     except Exception as e:
-        print(f"❌ Ошибка загрузки статистики: {e}")
+        print(f"❌ Ошибка загрузки из Gist: {e}")
         players_stats = {}
 
-def save_stats():
-    """Сохраняем статистику в файл"""
+def save_stats_to_gist():
+    """Сохраняем статистику в GitHub Gist"""
     try:
-        with open(STATS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(players_stats, f, ensure_ascii=False, indent=2)
-        print(f"💾 Сохранено {len(players_stats)} игроков в файл")
+        if not GITHUB_TOKEN:
+            print("⚠️ GitHub токен не найден, сохранение в Gist пропущено")
+            return
+            
+        print(f"🌐 Сохраняем {len(players_stats)} игроков в GitHub Gist...")
+        
+        headers = {
+            'Authorization': f'token {GITHUB_TOKEN}',
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        }
+        
+        data = {
+            'files': {
+                GIST_FILENAME: {
+                    'content': json.dumps(players_stats, ensure_ascii=False, indent=2)
+                }
+            }
+        }
+        
+        response = requests.patch(f'https://api.github.com/gists/{GIST_ID}', 
+                                headers=headers, 
+                                json=data, 
+                                timeout=10)
+        
+        if response.status_code == 200:
+            print(f"💾 Успешно сохранено {len(players_stats)} игроков в Gist")
+        else:
+            print(f"❌ Ошибка сохранения в Gist: HTTP {response.status_code}")
+            
     except Exception as e:
-        print(f"❌ Ошибка сохранения: {e}")
+        print(f"❌ Ошибка сохранения в Gist: {e}")
 
 # Загружаем статистику при запуске
-load_stats()
+load_stats_from_gist()
 
 def format_number(num):
     """Форматирование чисел"""
@@ -86,15 +140,14 @@ class handler(BaseHTTPRequestHandler):
             
             # Главная страница
             if path == '/' or path == '/api':
-                # При каждом пинге - перезагружаем и пересохраняем файл
-                load_stats()
-                save_stats()
+                # При каждом пинге - перезагружаем из GitHub Gist
+                load_stats_from_gist()
                 
-                print(f"🏓 API пинг получен - {len(players_stats)} игроков в памяти, файл обновлен")
+                print(f"🏓 API пинг получен - {len(players_stats)} игроков из Gist")
                 
                 data = {
                     'message': 'ANON Farm Leaderboard API',
-                    'version': '5.0-aggressive-storage-with-5min-ping',
+                    'version': '6.0-github-gist-secure',
                     'status': 'running on Vercel ✅',
                     'game_url': 'https://razum200.github.io/anon-farm-game/',
                     'endpoints': {
@@ -111,10 +164,10 @@ class handler(BaseHTTPRequestHandler):
             
             # Топ игроков
             elif path == '/api/leaderboard':
-                # ПРИНУДИТЕЛЬНО загружаем актуальную статистику из файла
-                load_stats()
+                # ПРИНУДИТЕЛЬНО загружаем актуальную статистику из GitHub Gist
+                load_stats_from_gist()
                 
-                print(f"📊 Отдаем топ: {len(players_stats)} игроков в памяти")
+                print(f"📊 Отдаем топ: {len(players_stats)} игроков из Gist")
                 
                 # Сортируем игроков по токенам
                 sorted_players = sorted(
@@ -214,8 +267,8 @@ class handler(BaseHTTPRequestHandler):
                     'last_update': datetime.now().isoformat()
                 }
                 
-                # Сохраняем в файл
-                save_stats()
+                # Сохраняем в GitHub Gist
+                save_stats_to_gist()
                 
                 # Отправляем ответ
                 self.send_response(200)
