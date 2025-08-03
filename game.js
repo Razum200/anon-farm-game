@@ -140,6 +140,7 @@ class AnonFarm {
         document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
         document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
         document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
+        document.getElementById('apiStatusBtn').addEventListener('click', () => this.checkApiStatus());
         
         // Запускаем автоферму
         this.startAutoFarm();
@@ -425,6 +426,22 @@ class AnonFarm {
             }
         } catch (error) {
             console.log('Ошибка получения глобального топа:', error);
+            
+            // Показываем сообщение о проблеме с API
+            const errorMessage = '🏆 ANON Farm - Топ игроков\n\n' +
+                               '⚠️ API сервер недоступен\n' +
+                               '💡 Для глобального топа запустите:\n' +
+                               '   ./start-api-server.sh\n\n' +
+                               '📱 Показываем локальный топ:\n\n' +
+                               this.getLocalTopText() +
+                               '\n\n🔥 Stay $ANON!';
+            
+            if (this.tg && this.tg.showAlert) {
+                this.tg.showAlert(errorMessage);
+            } else {
+                alert(errorMessage);
+            }
+            return;
         }
         
         // Fallback - показываем локальный топ
@@ -482,6 +499,56 @@ class AnonFarm {
         }
     }
 
+    // Проверка статуса API сервера
+    async checkApiStatus() {
+        const loadingMessage = '🔧 Проверка API сервера...\n\n⏳ Подключение к localhost:8000...';
+        
+        if (this.tg && this.tg.showAlert) {
+            this.tg.showAlert(loadingMessage);
+        }
+
+        try {
+            const response = await fetch('http://localhost:8000/', {
+                method: 'GET',
+                timeout: 5000
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const message = '✅ API Сервер работает!\n\n' +
+                              `📊 Версия: ${data.version}\n` +
+                              '🌐 Адрес: localhost:8000\n' +
+                              '🏆 Глобальный топ доступен\n\n' +
+                              '💡 Попробуйте кнопку "Топ игроков"!\n\n' +
+                              '🔥 Stay $ANON!';
+                
+                if (this.tg && this.tg.showAlert) {
+                    this.tg.showAlert(message);
+                } else {
+                    alert(message);
+                }
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            const message = '❌ API Сервер недоступен\n\n' +
+                          '🔧 Для запуска выполните:\n' +
+                          '   ./start-api-server.sh\n\n' +
+                          '📱 Пока работает локальный топ\n' +
+                          '💬 Глобальный топ в Telegram группе\n\n' +
+                          `🐛 Ошибка: ${error.message}\n\n` +
+                          '🔥 Stay $ANON!';
+            
+            if (this.tg && this.tg.showAlert) {
+                this.tg.showAlert(message);
+            } else {
+                alert(message);
+            }
+            
+            console.log('API недоступен:', error);
+        }
+    }
+
     // Запрос глобального топа через бота
     requestLeaderboard() {
         const BOT_TOKEN = '8459622700:AAFHx3Lv3eghzrlkyH-VLk5GwTZpx2AbEBM';
@@ -516,6 +583,21 @@ class AnonFarm {
             console.log('Ошибка загрузки локального топа:', e);
         }
         return [];
+    }
+
+    // Форматирование локального топа в текст
+    getLocalTopText() {
+        const localTop = this.getLocalLeaderboard();
+        if (localTop.length > 0) {
+            let text = '';
+            localTop.slice(0, 3).forEach((player, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                text += `${medal} ${player.name}: ${this.formatNumber(player.tokens)}\n`;
+            });
+            return text.trim();
+        } else {
+            return '📊 Пока нет локальных данных\n🎮 Поиграйте немного!';
+        }
     }
 
     // Сохранение в локальный топ

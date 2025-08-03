@@ -192,6 +192,27 @@
             box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
         }
 
+        .api-status-button {
+            background: linear-gradient(45deg, #6C5CE7, #A29BFE);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(108, 92, 231, 0.3);
+            margin-top: 10px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .api-status-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
         .footer {
             margin-top: 30px;
             font-size: 0.9em;
@@ -282,6 +303,9 @@
         <div class="leaderboard-section">
             <button class="leaderboard-button" id="leaderboardBtn">
                 🏆 Топ игроков
+            </button>
+            <button class="api-status-button" id="apiStatusBtn">
+                🔧 Проверить API
             </button>
         </div>
 
