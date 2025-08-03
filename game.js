@@ -139,12 +139,19 @@ class AnonFarm {
         document.getElementById('upgradeClick').addEventListener('click', () => this.buyUpgrade('click'));
         document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
         document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
+        document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
         
         // Запускаем автоферму
         this.startAutoFarm();
         
         // Автосохранение каждые 30 секунд
         setInterval(() => this.saveGame(), 30000);
+        
+        // Отправка статистики каждые 5 минут
+        setInterval(() => this.sendPlayerStats(), 300000);
+        
+        // Отправляем первую статистику через 10 секунд после запуска
+        setTimeout(() => this.sendPlayerStats(), 10000);
         
         console.log('Игра ANON Farm запущена!');
     }
@@ -303,6 +310,64 @@ class AnonFarm {
             return (num / 1000).toFixed(1) + 'K';
         }
         return Math.floor(num).toString();
+    }
+
+    // Отправка статистики игрока
+    sendPlayerStats() {
+        if (!this.tg || !this.tg.initDataUnsafe?.user) {
+            console.log('Telegram данные недоступны для статистики');
+            return;
+        }
+
+        const user = this.tg.initDataUnsafe.user;
+        const stats = {
+            player_id: user.id,
+            username: user.username || 'Анонимный игрок',
+            first_name: user.first_name || 'Аноним',
+            tokens: this.gameData.tokens,
+            level: this.gameData.level,
+            click_power: this.gameData.clickPower,
+            auto_power: this.gameData.autoFarmPower,
+            multiplier: this.gameData.multiplier,
+            total_upgrades: Object.values(this.gameData.upgrades).reduce((a, b) => a + b, 0),
+            timestamp: Date.now()
+        };
+
+        // Отправляем статистику в Telegram бота (замените BOT_TOKEN на ваш токен)
+        const BOT_TOKEN = 'YOUR_BOT_TOKEN'; // Вставьте сюда токен вашего бота
+        const CHAT_ID = 'YOUR_CHAT_ID'; // ID чата для получения статистики
+        
+        if (BOT_TOKEN !== 'YOUR_BOT_TOKEN') {
+            const message = `🎮 Статистика игрока:\n` +
+                          `👤 ${stats.first_name} (@${stats.username || 'анонимно'})\n` +
+                          `💰 Токены: ${this.formatNumber(stats.tokens)}\n` +
+                          `🏆 Уровень: ${stats.level}\n` +
+                          `⚡ Сила клика: ${stats.click_power}\n` +
+                          `🔄 Автоферма: ${stats.auto_power}/сек\n` +
+                          `✨ Множитель: x${stats.multiplier}\n` +
+                          `🛠️ Улучшений: ${stats.total_upgrades}`;
+
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            }).catch(err => console.log('Ошибка отправки статистики:', err));
+        }
+
+        console.log('Статистика игрока:', stats);
+    }
+
+    // Функция для показа топа игроков (можно вызвать вручную)
+    showLeaderboard() {
+        if (this.tg && this.tg.showAlert) {
+            this.tg.showAlert('Топ игроков скоро появится! 🏆\nСледите за обновлениями в сообществе ANON');
+        }
     }
 }
 

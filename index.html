@@ -167,6 +167,31 @@
             transform: none;
         }
 
+        .leaderboard-section {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .leaderboard-button {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .leaderboard-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
         .footer {
             margin-top: 30px;
             font-size: 0.9em;
@@ -252,6 +277,12 @@
                 </div>
                 <button class="upgrade-button" id="upgradeMultiplier">Купить</button>
             </div>
+        </div>
+
+        <div class="leaderboard-section">
+            <button class="leaderboard-button" id="leaderboardBtn">
+                🏆 Топ игроков
+            </button>
         </div>
 
         <footer class="footer">
