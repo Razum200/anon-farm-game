@@ -145,7 +145,10 @@ class AnonFarm {
         this.startAutoFarm();
         
         // Автосохранение каждые 30 секунд
-        setInterval(() => this.saveGame(), 30000);
+        setInterval(() => {
+            this.saveGame();
+            this.saveToLocalLeaderboard();
+        }, 30000);
         
         // Отправка статистики каждые 5 минут
         setInterval(() => this.sendPlayerStats(), 300000);
@@ -169,6 +172,11 @@ class AnonFarm {
         
         // Обновляем отображение
         this.updateDisplay();
+        
+        // Сохраняем в локальный топ каждые 10 кликов для производительности
+        if (this.gameData.tokens % 10 === 0) {
+            this.saveToLocalLeaderboard();
+        }
         
         // Вибрация в Telegram
         if (this.tg && this.tg.HapticFeedback) {
@@ -200,6 +208,7 @@ class AnonFarm {
             this.updateLevel();
             this.updateDisplay();
             this.saveGame();
+            this.saveToLocalLeaderboard();
             
             // Показываем уведомление
             this.showNotification(`Улучшение куплено! 🎉`);
@@ -363,10 +372,104 @@ class AnonFarm {
         console.log('Статистика игрока:', stats);
     }
 
-    // Функция для показа топа игроков (можно вызвать вручную)
+    // Функция для показа топа игроков
     showLeaderboard() {
+        // Отправляем команду боту для получения топа
+        this.requestLeaderboard();
+        
+        // Показываем локальный топ пока ждем ответ от бота
+        const localTop = this.getLocalLeaderboard();
+        let message = '🏆 ANON Farm - Топ игроков\n\n';
+        
+        if (localTop.length > 0) {
+            message += '📱 Локальные лидеры:\n';
+            localTop.slice(0, 5).forEach((player, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                message += `${medal} ${player.name}: ${this.formatNumber(player.tokens)} $ANON\n`;
+            });
+            message += '\n💬 Глобальный топ запрошен в чате!';
+        } else {
+            message += '📊 Пока нет данных о игроках\n';
+            message += '🎮 Поиграйте немного и топ появится!\n\n';
+            message += '💬 Глобальный топ запрошен в группе статистики!';
+        }
+        
+        message += '\n\n🔥 Stay $ANON!';
+        
         if (this.tg && this.tg.showAlert) {
-            this.tg.showAlert('Топ игроков скоро появится! 🏆\nСледите за обновлениями в сообществе ANON');
+            this.tg.showAlert(message);
+        } else {
+            alert(message);
+        }
+    }
+
+    // Запрос глобального топа через бота
+    requestLeaderboard() {
+        const BOT_TOKEN = '8459622700:AAFHx3Lv3eghzrlkyH-VLk5GwTZpx2AbEBM';
+        const CHAT_ID = '-1002719894591';
+        
+        const message = '🏆 ЗАПРОС ТОПА ИГРОКОВ\n\n' +
+                       '👤 Игрок запросил глобальный топ лидеров ANON Farm!\n' +
+                       '📊 Покажите топ-10 лучших игроков по токенам\n\n' +
+                       '⏰ Время запроса: ' + new Date().toLocaleString('ru-RU');
+
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            })
+        }).catch(err => console.log('Ошибка запроса топа:', err));
+    }
+
+    // Получение локального топа игроков
+    getLocalLeaderboard() {
+        try {
+            const savedData = localStorage.getItem('anonFarmLeaderboard');
+            if (savedData) {
+                return JSON.parse(savedData).sort((a, b) => b.tokens - a.tokens);
+            }
+        } catch (e) {
+            console.log('Ошибка загрузки локального топа:', e);
+        }
+        return [];
+    }
+
+    // Сохранение в локальный топ
+    saveToLocalLeaderboard() {
+        if (!this.tg || !this.tg.initDataUnsafe?.user) return;
+
+        const user = this.tg.initDataUnsafe.user;
+        const playerData = {
+            id: user.id,
+            name: user.first_name || 'Аноним',
+            username: user.username || '',
+            tokens: this.gameData.tokens,
+            level: this.gameData.level,
+            lastUpdate: Date.now()
+        };
+
+        try {
+            let leaderboard = this.getLocalLeaderboard();
+            
+            // Обновляем данные игрока или добавляем нового
+            const existingIndex = leaderboard.findIndex(p => p.id === user.id);
+            if (existingIndex >= 0) {
+                leaderboard[existingIndex] = playerData;
+            } else {
+                leaderboard.push(playerData);
+            }
+
+            // Оставляем только топ-50 для экономии места
+            leaderboard = leaderboard.sort((a, b) => b.tokens - a.tokens).slice(0, 50);
+            
+            localStorage.setItem('anonFarmLeaderboard', JSON.stringify(leaderboard));
+        } catch (e) {
+            console.log('Ошибка сохранения в локальный топ:', e);
         }
     }
 }
