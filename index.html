@@ -213,74 +213,205 @@
             box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
         }
 
-        /* Навигационные кнопки */
-        .navigation-section {
-            margin: 25px 0;
-            padding: 20px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        /* Структура страниц */
+        .page {
+            display: none;
         }
 
-        .nav-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            max-width: 350px;
-            margin: 0 auto;
-        }
-
-        .nav-button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 12px 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            backdrop-filter: blur(10px);
-        }
-
-        .nav-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .nav-button:active {
-            transform: translateY(0);
-        }
-
-        .nav-icon {
-            font-size: 1.3em;
+        .page.active {
             display: block;
         }
 
-        .nav-text {
-            font-size: 0.8em;
+        /* Нижняя навигация */
+        .bottom-navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
+        }
+
+        .nav-tab {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 60px;
+        }
+
+        .nav-tab:hover {
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-tab.active {
+            color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .nav-tab .nav-icon {
+            font-size: 1.2em;
+            display: block;
+        }
+
+        .nav-tab .nav-text {
+            font-size: 0.7em;
             font-weight: 500;
             display: block;
         }
 
-        @media (max-width: 480px) {
-            .nav-buttons {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-            
-            .nav-button {
-                padding: 10px 6px;
-            }
-            
-            .nav-icon {
-                font-size: 1.1em;
-            }
-            
-            .nav-text {
-                font-size: 0.7em;
-            }
+        /* Отступ снизу для контента чтобы не перекрывалась навигация */
+        .container {
+            padding-bottom: 80px;
+        }
+
+        /* Стили для профиля */
+        .profile-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .profile-avatar {
+            font-size: 3em;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+        }
+
+        .profile-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .profile-id {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-title {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        /* Стили для табов топа игроков */
+        .leaderboard-tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-button.active {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+            color: #FFD700;
+        }
+
+        .leaderboard-content {
+            margin: 20px 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Стили для элементов топа игроков */
+        .leaderboard-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .leaderboard-item .rank {
+            font-size: 1.2em;
+            min-width: 40px;
+        }
+
+        .leaderboard-item .name {
+            flex: 1;
+            font-weight: bold;
+        }
+
+        .leaderboard-item .tokens, .leaderboard-item .level {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .leaderboard-footer {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 0.9em;
         }
 
         .footer {
@@ -312,101 +443,169 @@
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="logo">🔥 ANON FARM</div>
-            <div class="subtitle">Фермим анонимно в TON блокчейне</div>
-        </header>
+        <!-- Страница Ферма -->
+        <div class="page active" id="farmPage">
+            <header class="header">
+                <div class="logo">🔥 ANON FARM</div>
+                <div class="subtitle">Фермим анонимно в TON блокчейне</div>
+            </header>
 
-        <div class="stats">
-            <div class="stat-item">
-                <span class="stat-label">💰 $ANON токены:</span>
-                <span class="stat-value" id="tokens">0</span>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">💰 $ANON токены:</span>
+                    <span class="stat-value" id="tokens">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⚡ За клик:</span>
+                    <span class="stat-value" id="perClick">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🏆 Уровень:</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">⚡ За клик:</span>
-                <span class="stat-value" id="perClick">1</span>
+
+            <div class="farm-area">
+                <button class="farm-button" id="farmButton">
+                    🚀<br>ФЕРМИТЬ
+                </button>
+                <div>Кликай для добычи $ANON!</div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">🏆 Уровень:</span>
-                <span class="stat-value" id="level">1</span>
+
+            <div class="leaderboard-section">
+                <button class="leaderboard-button" id="leaderboardBtn">
+                    🏆 Топ игроков
+                </button>
+                <button class="api-status-button" id="apiStatusBtn">
+                    🔧 Проверить API
+                </button>
             </div>
         </div>
 
-        <div class="farm-area">
-            <button class="farm-button" id="farmButton">
-                🚀<br>ФЕРМИТЬ
-            </button>
-            <div>Кликай для добычи $ANON!</div>
+        <!-- Страница Улучшения -->
+        <div class="page" id="upgradesPage">
+            <header class="header">
+                <div class="logo">🛠️ УЛУЧШЕНИЯ</div>
+                <div class="subtitle">Прокачивай свою ферму</div>
+            </header>
+
+            <div class="upgrades">
+                <div class="upgrade-item">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Анонимный майнер</div>
+                        <div class="upgrade-description">+1 токен за клик</div>
+                        <div class="upgrade-description">Стоимость: <span id="upgradeClickCost">10</span> токенов</div>
+                    </div>
+                    <button class="upgrade-button" id="upgradeClick">Купить</button>
+                </div>
+
+                <div class="upgrade-item">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Автоферма</div>
+                        <div class="upgrade-description">+1 токен в секунду</div>
+                        <div class="upgrade-description">Стоимость: <span id="upgradeAutoCost">50</span> токенов</div>
+                    </div>
+                    <button class="upgrade-button" id="upgradeAuto">Купить</button>
+                </div>
+
+                <div class="upgrade-item">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">TON ускоритель</div>
+                        <div class="upgrade-description">x2 ко всей добыче</div>
+                        <div class="upgrade-description">Стоимость: <span id="upgradeMultiplierCost">200</span> токенов</div>
+                    </div>
+                    <button class="upgrade-button" id="upgradeMultiplier">Купить</button>
+                </div>
+            </div>
         </div>
 
-        <div class="upgrades">
-            <div class="upgrade-title">🛠️ Улучшения</div>
+        <!-- Страница Топ игроков -->
+        <div class="page" id="leaderboardPage">
+            <header class="header">
+                <div class="logo">🏆 ТОП ИГРОКОВ</div>
+                <div class="subtitle">Лучшие фермеры ANON</div>
+            </header>
+
+            <div class="leaderboard-tabs">
+                <button class="tab-button active" data-tab="tokens">💰 По токенам</button>
+                <button class="tab-button" data-tab="level">🏆 По уровням</button>
+            </div>
             
-            <div class="upgrade-item">
-                <div class="upgrade-info">
-                    <div class="upgrade-name">Анонимный майнер</div>
-                    <div class="upgrade-description">+1 токен за клик</div>
-                    <div class="upgrade-description">Стоимость: <span id="upgradeClickCost">10</span> токенов</div>
+            <div class="leaderboard-content">
+                <div id="tokensLeaderboard" class="tab-content active">
+                    <p>🔄 Загружаем топ по токенам...</p>
                 </div>
-                <button class="upgrade-button" id="upgradeClick">Купить</button>
-            </div>
-
-            <div class="upgrade-item">
-                <div class="upgrade-info">
-                    <div class="upgrade-name">Автоферма</div>
-                    <div class="upgrade-description">+1 токен в секунду</div>
-                    <div class="upgrade-description">Стоимость: <span id="upgradeAutoCost">50</span> токенов</div>
+                <div id="levelLeaderboard" class="tab-content">
+                    <p>🔄 Загружаем топ по уровням...</p>
                 </div>
-                <button class="upgrade-button" id="upgradeAuto">Купить</button>
-            </div>
-
-            <div class="upgrade-item">
-                <div class="upgrade-info">
-                    <div class="upgrade-name">TON ускоритель</div>
-                    <div class="upgrade-description">x2 ко всей добыче</div>
-                    <div class="upgrade-description">Стоимость: <span id="upgradeMultiplierCost">200</span> токенов</div>
-                </div>
-                <button class="upgrade-button" id="upgradeMultiplier">Купить</button>
             </div>
         </div>
 
-        <div class="leaderboard-section">
-            <button class="leaderboard-button" id="leaderboardBtn">
-                🏆 Топ игроков
-            </button>
-            <button class="api-status-button" id="apiStatusBtn">
-                🔧 Проверить API
-            </button>
+        <!-- Страница Профиль -->
+        <div class="page" id="profilePage">
+            <header class="header">
+                <div class="logo">👤 ПРОФИЛЬ</div>
+                <div class="subtitle">Твоя статистика</div>
+            </header>
+
+            <div class="profile-stats">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <span class="profile-avatar">👤</span>
+                        <div class="profile-info">
+                            <div class="profile-name" id="profileName">Аноним</div>
+                            <div class="profile-id" id="profileId">ID: ...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-title">💰 Всего токенов</div>
+                            <div class="stat-value" id="profileTokens">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">🏆 Уровень</div>
+                            <div class="stat-value" id="profileLevel">1</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">👆 Всего кликов</div>
+                            <div class="stat-value" id="profileClicks">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">🛠️ Улучшений</div>
+                            <div class="stat-value" id="profileUpgrades">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">⚡ Сила клика</div>
+                            <div class="stat-value" id="profileClickPower">1</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">🔄 Автоферма</div>
+                            <div class="stat-value" id="profileAutoRate">0/сек</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Навигационные кнопки -->
-        <div class="navigation-section">
-            <div class="nav-buttons">
-                <button class="nav-button" data-url="https://anon.org.ua">
-                    <span class="nav-icon">🌐</span>
-                    <span class="nav-text">Сайт</span>
-                </button>
-                <button class="nav-button" data-url="https://t.me/anon_ua">
-                    <span class="nav-icon">💬</span>
-                    <span class="nav-text">Telegram</span>
-                </button>
-                <button class="nav-button" data-url="https://twitter.com/anon_ua">
-                    <span class="nav-icon">🐦</span>
-                    <span class="nav-text">Twitter</span>
-                </button>
-                <button class="nav-button" data-url="https://dexscreener.com/search?q=ANON">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-text">Charts</span>
-                </button>
-                <button class="nav-button" data-url="https://docs.anon.org.ua">
-                    <span class="nav-icon">📖</span>
-                    <span class="nav-text">Docs</span>
-                </button>
-                <button class="nav-button" data-url="https://app.uniswap.org/swap?outputCurrency=ANON">
-                    <span class="nav-icon">💱</span>
-                    <span class="nav-text">Trade</span>
-                </button>
-            </div>
+        <!-- Нижняя навигация -->
+        <div class="bottom-navigation">
+            <button class="nav-tab active" data-page="farm">
+                <span class="nav-icon">🚜</span>
+                <span class="nav-text">Ферма</span>
+            </button>
+            <button class="nav-tab" data-page="upgrades">
+                <span class="nav-icon">🛠️</span>
+                <span class="nav-text">Улучшения</span>
+            </button>
+            <button class="nav-tab" data-page="leaderboard">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-text">Топ игроков</span>
+            </button>
+            <button class="nav-tab" data-page="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Профиль</span>
+            </button>
         </div>
 
         <footer class="footer">
@@ -416,6 +615,6 @@
 
     <!-- Подключение Telegram Web Apps API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=2025080323"></script>
+    <script src="game.js?v=2025080324"></script>
 </body>
 </html>

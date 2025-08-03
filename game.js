@@ -8,6 +8,7 @@ class AnonFarm {
             clickPower: 1,
             autoFarmPower: 0,
             multiplier: 1,
+            totalClicks: 0,
             upgrades: {
                 clickUpgrades: 0,
                 autoUpgrades: 0,
@@ -142,8 +143,8 @@ class AnonFarm {
         document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
         document.getElementById('apiStatusBtn').addEventListener('click', () => this.checkApiStatus());
         
-        // Обработчики навигационных кнопок
-        this.initNavigationButtons();
+        // Обработчики навигации между страницами
+        this.initPageNavigation();
         
         // Запускаем автоферму
         this.startAutoFarm();
@@ -175,6 +176,7 @@ class AnonFarm {
         // Добавляем токены за клик
         const earnings = this.gameData.clickPower * this.gameData.multiplier;
         this.gameData.tokens += earnings;
+        this.gameData.totalClicks += 1;
         
         // Обновляем уровень
         this.updateLevel();
@@ -737,35 +739,194 @@ class AnonFarm {
         }
     }
 
-    // Инициализация навигационных кнопок
-    initNavigationButtons() {
-        const navButtons = document.querySelectorAll('.nav-button');
+    // Инициализация навигации между страницами
+    initPageNavigation() {
+        // Обработчики для нижней навигации
+        const navTabs = document.querySelectorAll('.nav-tab');
         
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const url = button.getAttribute('data-url');
-                if (url) {
-                    // Логируем для отладки
-                    console.log('🌐 Открываем ссылку:', url);
-                    
-                    // Используем Telegram WebApp для открытия ссылки
-                    if (this.tg && this.tg.openLink) {
-                        this.tg.openLink(url);
-                    } else {
-                        // Fallback для обычного браузера
-                        window.open(url, '_blank');
-                    }
-                    
-                    // Добавляем визуальный эффект нажатия
-                    button.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        button.style.transform = '';
-                    }, 150);
-                }
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const pageName = tab.getAttribute('data-page');
+                this.showPage(pageName);
+                
+                // Обновляем активную вкладку
+                navTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
             });
         });
+
+        // Обработчики для табов топа игроков
+        const tabButtons = document.querySelectorAll('.tab-button');
         
-        console.log('✅ Навигационные кнопки инициализированы');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                this.showLeaderboardTab(tabName);
+                
+                // Обновляем активную вкладку
+                tabButtons.forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+
+        // Обновляем профиль при первой загрузке
+        this.updateProfile();
+        
+        console.log('✅ Навигация инициализирована');
+    }
+
+    // Показ определенной страницы
+    showPage(pageName) {
+        // Скрываем все страницы
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(page => page.classList.remove('active'));
+        
+        // Показываем нужную страницу
+        const targetPage = document.getElementById(pageName + 'Page');
+        if (targetPage) {
+            targetPage.classList.add('active');
+            
+            // Обновляем данные при переходе на страницы
+            if (pageName === 'profile') {
+                this.updateProfile();
+            } else if (pageName === 'leaderboard') {
+                this.loadLeaderboards();
+            }
+        }
+    }
+
+    // Переключение табов в топе игроков
+    showLeaderboardTab(tabName) {
+        // Скрываем все табы
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Показываем нужный таб
+        const targetTab = document.getElementById(tabName + 'Leaderboard');
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
+    }
+
+    // Обновление данных профиля
+    updateProfile() {
+        try {
+            const user = this.tg?.initDataUnsafe?.user;
+            
+            // Обновляем имя и ID
+            if (user) {
+                document.getElementById('profileName').textContent = user.first_name || 'Аноним';
+                document.getElementById('profileId').textContent = `ID: ${user.id}`;
+            }
+            
+            // Обновляем статистику
+            document.getElementById('profileTokens').textContent = this.formatNumber(this.gameData.tokens);
+            document.getElementById('profileLevel').textContent = this.gameData.level;
+            document.getElementById('profileClicks').textContent = this.formatNumber(this.gameData.totalClicks || 0);
+            document.getElementById('profileUpgrades').textContent = 
+                (this.gameData.upgrades.clickUpgrades || 0) + (this.gameData.upgrades.autoUpgrades || 0) + (this.gameData.upgrades.multiplierUpgrades || 0);
+            document.getElementById('profileClickPower').textContent = this.gameData.clickPower;
+            document.getElementById('profileAutoRate').textContent = this.gameData.autoFarmPower + '/сек';
+            
+        } catch (error) {
+            console.log('Ошибка обновления профиля:', error);
+        }
+    }
+
+    // Загрузка данных для топов
+    loadLeaderboards() {
+        // Загружаем топ по токенам (уже есть функция)
+        this.loadTokensLeaderboard();
+        
+        // Загружаем топ по уровням
+        this.loadLevelLeaderboard();
+    }
+
+    // Топ по токенам (адаптация существующей функции)
+    async loadTokensLeaderboard() {
+        const container = document.getElementById('tokensLeaderboard');
+        container.innerHTML = '<p>🔄 Загружаем топ по токенам...</p>';
+        
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch('https://anon-farm-api.vercel.app/api/leaderboard', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.leaderboard.length > 0) {
+                    let html = '';
+                    data.leaderboard.forEach((player, index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${player.rank}.`;
+                        html += `
+                            <div class="leaderboard-item">
+                                <span class="rank">${medal}</span>
+                                <span class="name">${player.name}</span>
+                                <span class="tokens">${player.tokens_formatted} $ANON</span>
+                            </div>
+                        `;
+                    });
+                    html += `<p class="leaderboard-footer">📊 Всего игроков: ${data.total_players}</p>`;
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p>📊 Пока нет активных игроков</p>';
+                }
+            }
+        } catch (error) {
+            container.innerHTML = '<p>❌ Ошибка загрузки топа по токенам</p>';
+        }
+    }
+
+    // Топ по уровням (новая функция)
+    async loadLevelLeaderboard() {
+        const container = document.getElementById('levelLeaderboard');
+        container.innerHTML = '<p>🔄 Загружаем топ по уровням...</p>';
+        
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch('https://anon-farm-api.vercel.app/api/leaderboard', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.leaderboard.length > 0) {
+                    // Сортируем по уровням
+                    const levelSorted = [...data.leaderboard].sort((a, b) => b.level - a.level);
+                    
+                    let html = '';
+                    levelSorted.forEach((player, index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                        html += `
+                            <div class="leaderboard-item">
+                                <span class="rank">${medal}</span>
+                                <span class="name">${player.name}</span>
+                                <span class="level">Уровень ${player.level}</span>
+                            </div>
+                        `;
+                    });
+                    html += `<p class="leaderboard-footer">🏆 Всего игроков: ${data.total_players}</p>`;
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p>🏆 Пока нет активных игроков</p>';
+                }
+            }
+        } catch (error) {
+            container.innerHTML = '<p>❌ Ошибка загрузки топа по уровням</p>';
+        }
     }
 }
 
