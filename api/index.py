@@ -3,6 +3,7 @@ import json
 import os
 import urllib.request
 import urllib.parse
+from urllib.parse import urlparse
 from datetime import datetime
 
 # Настройки GitHub Gist (используем встроенные библиотеки Python)
