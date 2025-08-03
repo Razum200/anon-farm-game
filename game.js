@@ -392,13 +392,19 @@ class AnonFarm {
             // Отправляем статистику перед запросом топа
             await this.submitStatsToAPI();
             
-            // Запрашиваем глобальный топ через API  
+            // Запрашиваем глобальный топ через API с таймаутом
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 секунд таймаут
+            
             const response = await fetch('https://anon-farm-api.vercel.app/api/leaderboard', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             if (response.ok) {
                 const data = await response.json();
@@ -423,6 +429,9 @@ class AnonFarm {
                     }
                     return;
                 }
+            } else {
+                // HTTP ошибка (не 200 статус)
+                throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
             console.log('Ошибка получения глобального топа:', error);
@@ -487,13 +496,19 @@ class AnonFarm {
         };
 
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд таймаут
+            
             await fetch('https://anon-farm-api.vercel.app/api/submit_stats', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(statsData)
+                body: JSON.stringify(statsData),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
         } catch (error) {
             console.log('Ошибка отправки статистики в API:', error);
         }
@@ -501,17 +516,22 @@ class AnonFarm {
 
     // Проверка статуса API сервера
     async checkApiStatus() {
-        const loadingMessage = '🔧 Проверка API сервера...\n\n⏳ Подключение к localhost:8000...';
+        const loadingMessage = '🔧 Проверка API сервера...\n\n⏳ Подключение к облачному API...';
         
         if (this.tg && this.tg.showAlert) {
             this.tg.showAlert(loadingMessage);
         }
 
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд таймаут
+            
             const response = await fetch('https://anon-farm-api.vercel.app/', {
                 method: 'GET',
-                timeout: 5000
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
 
             if (response.ok) {
                 const data = await response.json();
