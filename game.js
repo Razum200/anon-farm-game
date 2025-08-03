@@ -330,10 +330,17 @@ class AnonFarm {
 
     // Отправка статистики игрока
     sendPlayerStats() {
+        console.log('🔍 Проверка отправки статистики...');
+        console.log('Telegram API доступен:', !!this.tg);
+        console.log('Пользователь Telegram:', this.tg?.initDataUnsafe?.user);
+        
         if (!this.tg || !this.tg.initDataUnsafe?.user) {
-            console.log('Telegram данные недоступны для статистики');
+            console.log('❌ Telegram данные недоступны для статистики');
+            console.log('💡 Игра должна быть запущена через Telegram бота!');
             return;
         }
+        
+        console.log('✅ Отправляем статистику в Telegram группу...');
 
         const user = this.tg.initDataUnsafe.user;
         const stats = {
@@ -373,7 +380,13 @@ class AnonFarm {
                     text: message,
                     parse_mode: 'HTML'
                 })
-            }).catch(err => console.log('Ошибка отправки статистики:', err));
+            }).then(response => {
+                if (response.ok) {
+                    console.log('📊 Статистика отправлена в Telegram группу!');
+                } else {
+                    console.log('❌ Ошибка HTTP при отправке статистики:', response.status);
+                }
+            }).catch(err => console.log('❌ Ошибка отправки статистики:', err));
         }
 
         console.log('Статистика игрока:', stats);
