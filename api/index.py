@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
-# import requests  # Отключаем пока
+import requests
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
@@ -98,9 +98,13 @@ def save_stats_to_gist():
     except Exception as e:
         print(f"❌ Ошибка сохранения в Gist: {e}")
 
-# Загружаем статистику при запуске (пока отключаем GitHub)
-# load_stats_from_gist()
-print("🚀 API запущен в тестовом режиме")
+# Загружаем статистику при запуске (безопасно)
+try:
+    load_stats_from_gist()
+    print("🚀 API запущен с GitHub Gist")
+except Exception as e:
+    print(f"⚠️ API запущен без GitHub: {e}")
+    print("🚀 API работает в локальном режиме")
 
 def format_number(num):
     """Форматирование чисел"""
@@ -141,14 +145,19 @@ class handler(BaseHTTPRequestHandler):
             
             # Главная страница
             if path == '/' or path == '/api':
-                # Тестовый режим - без GitHub
-                # load_stats_from_gist()
+                # Пытаемся загрузить из GitHub (безопасно)
+                try:
+                    load_stats_from_gist()
+                    gist_status = "loaded"
+                except Exception as e:
+                    print(f"⚠️ GitHub Gist недоступен: {e}")
+                    gist_status = "fallback"
                 
-                print(f"🏓 API пинг получен - {len(players_stats)} игроков в памяти (тест)")
+                print(f"🏓 API пинг получен - {len(players_stats)} игроков, статус: {gist_status}")
                 
                 data = {
                     'message': 'ANON Farm Leaderboard API',
-                    'version': '6.1-test-mode-without-github',
+                    'version': '6.2-github-gist-safe',
                     'status': 'running on Vercel ✅',
                     'game_url': 'https://razum200.github.io/anon-farm-game/',
                     'endpoints': {
@@ -165,10 +174,13 @@ class handler(BaseHTTPRequestHandler):
             
             # Топ игроков
             elif path == '/api/leaderboard':
-                # Тестовый режим - без GitHub
-                # load_stats_from_gist()
-                
-                print(f"📊 Отдаем топ: {len(players_stats)} игроков из памяти (тест)")
+                # Пытаемся загрузить из GitHub (безопасно)
+                try:
+                    load_stats_from_gist()
+                    print(f"📊 Отдаем топ: {len(players_stats)} игроков из Gist")
+                except Exception as e:
+                    print(f"⚠️ Используем локальную память: {e}")
+                    print(f"📊 Отдаем топ: {len(players_stats)} игроков из памяти")
                 
                 # Сортируем игроков по токенам
                 sorted_players = sorted(
@@ -268,9 +280,13 @@ class handler(BaseHTTPRequestHandler):
                     'last_update': datetime.now().isoformat()
                 }
                 
-                # Тестовый режим - сохранение в память
-                # save_stats_to_gist()
-                print(f"💾 Игрок сохранен в памяти (тест): {name} - {tokens} токенов")
+                # Пытаемся сохранить в GitHub (безопасно)
+                try:
+                    save_stats_to_gist()
+                    print(f"💾 Игрок сохранен в Gist: {name} - {tokens} токенов")
+                except Exception as e:
+                    print(f"⚠️ Сохранение в память: {e}")
+                    print(f"💾 Игрок сохранен локально: {name} - {tokens} токенов")
                 
                 # Отправляем ответ
                 self.send_response(200)
