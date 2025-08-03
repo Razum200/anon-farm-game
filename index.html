@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANON Farm - Игра для анонов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-label {
+            font-weight: bold;
+        }
+
+        .stat-value {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .farm-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .farm-button {
+            width: 150px;
+            height: 150px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255,107,107,0.3);
+            margin-bottom: 20px;
+        }
+
+        .farm-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(255,107,107,0.4);
+        }
+
+        .farm-button:active {
+            transform: scale(0.95);
+        }
+
+        .upgrades {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .upgrade-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .upgrade-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .upgrade-info {
+            text-align: left;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-description {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .upgrade-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-button:hover {
+            transform: scale(1.05);
+        }
+
+        .upgrade-button:disabled {
+            background: gray;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .click-effect {
+            position: absolute;
+            color: #ffa500;
+            font-weight: bold;
+            font-size: 1.5em;
+            pointer-events: none;
+            animation: float-up 1s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">🔥 ANON FARM</div>
+            <div class="subtitle">Фермим анонимно в TON блокчейне</div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">💰 $ANON токены:</span>
+                <span class="stat-value" id="tokens">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">⚡ За клик:</span>
+                <span class="stat-value" id="perClick">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">🏆 Уровень:</span>
+                <span class="stat-value" id="level">1</span>
+            </div>
+        </div>
+
+        <div class="farm-area">
+            <button class="farm-button" id="farmButton">
+                🚀<br>ФЕРМИТЬ
+            </button>
+            <div>Кликай для добычи $ANON!</div>
+        </div>
+
+        <div class="upgrades">
+            <div class="upgrade-title">🛠️ Улучшения</div>
+            
+            <div class="upgrade-item">
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Анонимный майнер</div>
+                    <div class="upgrade-description">+1 токен за клик</div>
+                    <div class="upgrade-description">Стоимость: <span id="upgradeClickCost">10</span> токенов</div>
+                </div>
+                <button class="upgrade-button" id="upgradeClick">Купить</button>
+            </div>
+
+            <div class="upgrade-item">
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Автоферма</div>
+                    <div class="upgrade-description">+1 токен в секунду</div>
+                    <div class="upgrade-description">Стоимость: <span id="upgradeAutoCost">50</span> токенов</div>
+                </div>
+                <button class="upgrade-button" id="upgradeAuto">Купить</button>
+            </div>
+
+            <div class="upgrade-item">
+                <div class="upgrade-info">
+                    <div class="upgrade-name">TON ускоритель</div>
+                    <div class="upgrade-description">x2 ко всей добыче</div>
+                    <div class="upgrade-description">Стоимость: <span id="upgradeMultiplierCost">200</span> токенов</div>
+                </div>
+                <button class="upgrade-button" id="upgradeMultiplier">Купить</button>
+            </div>
+        </div>
+
+        <footer class="footer">
+            Stay $ANON 🔥 Создано для анонимного сообщества
+        </footer>
+    </div>
+
+    <!-- Подключение Telegram Web Apps API -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

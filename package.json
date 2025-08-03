@@ -1,0 +1,31 @@
+{
+  "name": "anon-farm-game",
+  "version": "1.0.0",
+  "description": "Фермерская игра для анонимного сообщества ANON в Telegram",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx serve .",
+    "deploy": "echo 'Загрузите файлы на ваш хостинг (GitHub Pages, Netlify, Vercel)'"
+  },
+  "keywords": [
+    "telegram",
+    "webapp",
+    "game",
+    "anon",
+    "farm",
+    "clicker",
+    "ton",
+    "blockchain"
+  ],
+  "author": "ANON Community",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/anon-farm.git"
+  },
+  "homepage": "https://yourusername.github.io/anon-farm"
+}

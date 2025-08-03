@@ -1,0 +1,320 @@
+// Игра ANON Farm - логика и интеграция с Telegram
+class AnonFarm {
+    constructor() {
+        // Базовые параметры игры
+        this.gameData = {
+            tokens: 0,
+            level: 1,
+            clickPower: 1,
+            autoFarmPower: 0,
+            multiplier: 1,
+            upgrades: {
+                clickUpgrades: 0,
+                autoUpgrades: 0,
+                multiplierUpgrades: 0
+            },
+            lastSave: Date.now()
+        };
+
+        // Стоимость улучшений
+        this.upgradeCosts = {
+            click: 10,
+            auto: 50,
+            multiplier: 200
+        };
+
+        // Инициализация Telegram Web App
+        this.initTelegram();
+        
+        // Загрузка данных
+        this.loadGame();
+        
+        // Запуск игры
+        this.initGame();
+    }
+
+    initTelegram() {
+        // Проверяем, запущено ли в Telegram
+        if (window.Telegram && window.Telegram.WebApp) {
+            this.tg = window.Telegram.WebApp;
+            this.tg.ready();
+            
+            // Расширяем приложение на весь экран
+            this.tg.expand();
+            
+            // Настраиваем цвета интерфейса под тему Telegram
+            this.tg.setHeaderColor('#667eea');
+            this.tg.setBackgroundColor('#667eea');
+            
+            console.log('Telegram Web App инициализировано');
+            console.log('Пользователь:', this.tg.initDataUnsafe?.user);
+        } else {
+            console.log('Запущено вне Telegram');
+        }
+    }
+
+    loadGame() {
+        try {
+            // Пытаемся загрузить данные из Telegram Cloud Storage
+            if (this.tg && this.tg.CloudStorage) {
+                this.tg.CloudStorage.getItem('anonFarmData', (err, data) => {
+                    if (!err && data) {
+                        try {
+                            const savedData = JSON.parse(data);
+                            this.gameData = { ...this.gameData, ...savedData };
+                            this.calculateOfflineProgress();
+                            this.updateDisplay();
+                            console.log('Данные загружены из Telegram Cloud');
+                        } catch (e) {
+                            console.error('Ошибка парсинга сохраненных данных:', e);
+                        }
+                    } else {
+                        console.log('Сохраненных данных не найдено');
+                    }
+                });
+            } else {
+                // Fallback на localStorage если нет Telegram
+                const savedData = localStorage.getItem('anonFarmData');
+                if (savedData) {
+                    this.gameData = { ...this.gameData, ...JSON.parse(savedData) };
+                    this.calculateOfflineProgress();
+                    console.log('Данные загружены из localStorage');
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+        }
+        
+        this.updateDisplay();
+    }
+
+    saveGame() {
+        try {
+            this.gameData.lastSave = Date.now();
+            const dataToSave = JSON.stringify(this.gameData);
+            
+            // Сохраняем в Telegram Cloud Storage
+            if (this.tg && this.tg.CloudStorage) {
+                this.tg.CloudStorage.setItem('anonFarmData', dataToSave, (err) => {
+                    if (err) {
+                        console.error('Ошибка сохранения в Telegram Cloud:', err);
+                        // Fallback на localStorage
+                        localStorage.setItem('anonFarmData', dataToSave);
+                    } else {
+                        console.log('Игра сохранена в Telegram Cloud');
+                    }
+                });
+            } else {
+                // Fallback на localStorage
+                localStorage.setItem('anonFarmData', dataToSave);
+                console.log('Игра сохранена в localStorage');
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения:', error);
+        }
+    }
+
+    calculateOfflineProgress() {
+        // Рассчитываем сколько токенов заработано за время отсутствия
+        const timeDiff = Date.now() - this.gameData.lastSave;
+        const secondsOffline = Math.floor(timeDiff / 1000);
+        
+        if (secondsOffline > 0 && this.gameData.autoFarmPower > 0) {
+            const offlineEarnings = secondsOffline * this.gameData.autoFarmPower * this.gameData.multiplier;
+            this.gameData.tokens += offlineEarnings;
+            
+            // Показываем уведомление об офлайн заработке
+            if (offlineEarnings > 0) {
+                this.showNotification(`Добыто офлайн: ${this.formatNumber(offlineEarnings)} $ANON!`);
+            }
+        }
+    }
+
+    initGame() {
+        // Обновляем отображение
+        this.updateDisplay();
+        
+        // Привязываем события
+        document.getElementById('farmButton').addEventListener('click', (e) => this.clickFarm(e));
+        document.getElementById('upgradeClick').addEventListener('click', () => this.buyUpgrade('click'));
+        document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
+        document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
+        
+        // Запускаем автоферму
+        this.startAutoFarm();
+        
+        // Автосохранение каждые 30 секунд
+        setInterval(() => this.saveGame(), 30000);
+        
+        console.log('Игра ANON Farm запущена!');
+    }
+
+    clickFarm(event) {
+        // Добавляем токены за клик
+        const earnings = this.gameData.clickPower * this.gameData.multiplier;
+        this.gameData.tokens += earnings;
+        
+        // Обновляем уровень
+        this.updateLevel();
+        
+        // Показываем анимацию
+        this.showClickEffect(event, earnings);
+        
+        // Обновляем отображение
+        this.updateDisplay();
+        
+        // Вибрация в Telegram
+        if (this.tg && this.tg.HapticFeedback) {
+            this.tg.HapticFeedback.impactOccurred('light');
+        }
+    }
+
+    buyUpgrade(type) {
+        const cost = this.getUpgradeCost(type);
+        
+        if (this.gameData.tokens >= cost) {
+            this.gameData.tokens -= cost;
+            
+            switch (type) {
+                case 'click':
+                    this.gameData.clickPower += 1;
+                    this.gameData.upgrades.clickUpgrades++;
+                    break;
+                case 'auto':
+                    this.gameData.autoFarmPower += 1;
+                    this.gameData.upgrades.autoUpgrades++;
+                    break;
+                case 'multiplier':
+                    this.gameData.multiplier += 1;
+                    this.gameData.upgrades.multiplierUpgrades++;
+                    break;
+            }
+            
+            this.updateLevel();
+            this.updateDisplay();
+            this.saveGame();
+            
+            // Показываем уведомление
+            this.showNotification(`Улучшение куплено! 🎉`);
+            
+            // Вибрация успеха
+            if (this.tg && this.tg.HapticFeedback) {
+                this.tg.HapticFeedback.notificationOccurred('success');
+            }
+        } else {
+            // Недостаточно токенов
+            this.showNotification(`Недостаточно токенов! Нужно еще ${this.formatNumber(cost - this.gameData.tokens)}`);
+            
+            if (this.tg && this.tg.HapticFeedback) {
+                this.tg.HapticFeedback.notificationOccurred('error');
+            }
+        }
+    }
+
+    getUpgradeCost(type) {
+        const baseState = this.upgradeCosts[type];
+        const upgradeCount = this.gameData.upgrades[type + 'Upgrades'] || 0;
+        return Math.floor(baseState * Math.pow(1.5, upgradeCount));
+    }
+
+    updateLevel() {
+        // Простая формула уровня на основе общих улучшений
+        const totalUpgrades = Object.values(this.gameData.upgrades).reduce((a, b) => a + b, 0);
+        this.gameData.level = Math.floor(totalUpgrades / 3) + 1;
+    }
+
+    startAutoFarm() {
+        setInterval(() => {
+            if (this.gameData.autoFarmPower > 0) {
+                const autoEarnings = this.gameData.autoFarmPower * this.gameData.multiplier;
+                this.gameData.tokens += autoEarnings;
+                this.updateDisplay();
+            }
+        }, 1000); // Каждую секунду
+    }
+
+    showClickEffect(event, amount) {
+        const effect = document.createElement('div');
+        effect.className = 'click-effect';
+        effect.textContent = '+' + this.formatNumber(amount);
+        
+        // Позиция относительно клика
+        const rect = event.target.getBoundingClientRect();
+        effect.style.left = (rect.left + rect.width / 2) + 'px';
+        effect.style.top = (rect.top + rect.height / 2) + 'px';
+        
+        document.body.appendChild(effect);
+        
+        // Удаляем эффект через секунду
+        setTimeout(() => {
+            if (effect.parentNode) {
+                effect.parentNode.removeChild(effect);
+            }
+        }, 1000);
+    }
+
+    showNotification(message) {
+        // Показываем уведомление через Telegram
+        if (this.tg && this.tg.showAlert) {
+            this.tg.showAlert(message);
+        } else {
+            // Fallback на обычный alert
+            alert(message);
+        }
+    }
+
+    updateDisplay() {
+        // Обновляем все элементы интерфейса
+        document.getElementById('tokens').textContent = this.formatNumber(this.gameData.tokens);
+        document.getElementById('perClick').textContent = this.formatNumber(this.gameData.clickPower * this.gameData.multiplier);
+        document.getElementById('level').textContent = this.gameData.level;
+        
+        // Обновляем стоимости улучшений
+        document.getElementById('upgradeClickCost').textContent = this.formatNumber(this.getUpgradeCost('click'));
+        document.getElementById('upgradeAutoCost').textContent = this.formatNumber(this.getUpgradeCost('auto'));
+        document.getElementById('upgradeMultiplierCost').textContent = this.formatNumber(this.getUpgradeCost('multiplier'));
+        
+        // Обновляем доступность кнопок улучшений
+        this.updateUpgradeButtons();
+    }
+
+    updateUpgradeButtons() {
+        const upgradeButtons = [
+            { id: 'upgradeClick', type: 'click' },
+            { id: 'upgradeAuto', type: 'auto' },
+            { id: 'upgradeMultiplier', type: 'multiplier' }
+        ];
+        
+        upgradeButtons.forEach(button => {
+            const element = document.getElementById(button.id);
+            const cost = this.getUpgradeCost(button.type);
+            element.disabled = this.gameData.tokens < cost;
+        });
+    }
+
+    formatNumber(num) {
+        if (num >= 1000000000) {
+            return (num / 1000000000).toFixed(1) + 'B';
+        }
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        }
+        if (num >= 1000) {
+            return (num / 1000).toFixed(1) + 'K';
+        }
+        return Math.floor(num).toString();
+    }
+}
+
+// Запускаем игру когда страница загружена
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Инициализация ANON Farm...');
+    window.anonFarm = new AnonFarm();
+});
+
+// Сохраняем игру при закрытии страницы
+window.addEventListener('beforeunload', () => {
+    if (window.anonFarm) {
+        window.anonFarm.saveGame();
+    }
+});
