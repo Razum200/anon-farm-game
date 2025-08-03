@@ -14,7 +14,20 @@ class AnonFarm {
                 autoUpgrades: 0,
                 multiplierUpgrades: 0
             },
-            lastSave: Date.now()
+            lastSave: Date.now(),
+            // Данные огорода
+            garden: {
+                seeds: {
+                    carrot: 0,
+                    potato: 0, 
+                    tomato: 0
+                },
+                plots: [
+                    null, null, null,  // Строка 1
+                    null, null, null,  // Строка 2
+                    null, null, null   // Строка 3
+                ] // null = пустая, объект = {type: 'carrot', plantTime: timestamp, stage: 'planted/growing/ready'}
+            }
         };
 
         // Стоимость улучшений
@@ -22,6 +35,46 @@ class AnonFarm {
             click: 10,
             auto: 50,
             multiplier: 200
+        };
+
+        // Система семян для огорода
+        this.seedsConfig = {
+            carrot: {
+                name: 'Морковь',
+                icon: '🥕',
+                price: 10,           // Цена покупки за $ANON
+                growthTime: 2 * 60,  // Время роста в секундах (2 минуты)
+                reward: 20,          // Награда за урожай
+                stages: {
+                    planted: '🌱',   // Только посажено
+                    growing: '🌿',   // Растет
+                    ready: '🥕'      // Готово к сбору
+                }
+            },
+            potato: {
+                name: 'Картошка',
+                icon: '🥔',
+                price: 25,
+                growthTime: 5 * 60,  // 5 минут
+                reward: 60,
+                stages: {
+                    planted: '🌱',
+                    growing: '🌿',
+                    ready: '🥔'
+                }
+            },
+            tomato: {
+                name: 'Помидор',
+                icon: '🍅',
+                price: 50,
+                growthTime: 10 * 60, // 10 минут
+                reward: 150,
+                stages: {
+                    planted: '🌱',
+                    growing: '🌿',
+                    ready: '🍅'
+                }
+            }
         };
 
         // Инициализация Telegram Web App
@@ -151,6 +204,9 @@ class AnonFarm {
         // Обработчики навигации между страницами
         this.initPageNavigation();
         
+        // Инициализируем огород
+        this.initGarden();
+        
         // Запускаем автоферму
         this.startAutoFarm();
         
@@ -159,6 +215,11 @@ class AnonFarm {
             this.saveGame();
             this.saveToLocalLeaderboard();
         }, 30000);
+        
+        // Обновление роста растений каждые 5 секунд
+        setInterval(() => {
+            this.updatePlantGrowth();
+        }, 5000);
         
         // Отправка статистики каждые 2 минуты
         setInterval(() => {
@@ -802,6 +863,8 @@ class AnonFarm {
                 this.updateProfile();
             } else if (pageName === 'leaderboard') {
                 this.loadLeaderboards();
+            } else if (pageName === 'garden') {
+                this.updateGardenDisplay();
             }
         }
     }
@@ -965,6 +1028,257 @@ class AnonFarm {
                 console.log('❌ API пинг - ошибка сети:', error.message);
             }
         }
+    }
+
+    // ===== МЕТОДЫ ДЛЯ ОГОРОДА =====
+    
+    // Инициализация огорода
+    initGarden() {
+        // Обработчики покупки семян
+        document.querySelectorAll('.seed-buy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const seedType = e.target.closest('.seed-item').getAttribute('data-seed');
+                this.buySeed(seedType);
+            });
+        });
+
+        // Обработчики грядок
+        document.querySelectorAll('.garden-plot').forEach(plot => {
+            plot.addEventListener('click', (e) => {
+                const plotIndex = parseInt(e.target.closest('.garden-plot').getAttribute('data-plot'));
+                this.handlePlotClick(plotIndex);
+            });
+        });
+
+        // Обработчики выбора семян для посадки
+        document.querySelectorAll('.selection-seed').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const seedType = e.target.getAttribute('data-seed');
+                this.plantSeedOnSelectedPlot(seedType);
+            });
+        });
+
+        // Кнопка отмены выбора
+        document.querySelector('.selection-cancel').addEventListener('click', () => {
+            this.hideSeedSelection();
+        });
+
+        // Обновляем отображение огорода
+        this.updateGardenDisplay();
+        
+        console.log('🌱 Огород инициализирован');
+    }
+
+    // Покупка семян
+    buySeed(seedType) {
+        const seedConfig = this.seedsConfig[seedType];
+        if (!seedConfig) return;
+
+        if (this.gameData.tokens >= seedConfig.price) {
+            this.gameData.tokens -= seedConfig.price;
+            this.gameData.garden.seeds[seedType]++;
+            
+            this.updateDisplay();
+            this.updateGardenDisplay();
+            this.saveGame();
+            
+            this.showNotification(`Куплено: ${seedConfig.name} за ${seedConfig.price} $ANON! 🌱`);
+            
+            // Вибрация успеха
+            if (this.tg && this.tg.HapticFeedback) {
+                this.tg.HapticFeedback.notificationOccurred('success');
+            }
+        } else {
+            this.showNotification(`Недостаточно токенов! Нужно ${seedConfig.price} $ANON`);
+            
+            if (this.tg && this.tg.HapticFeedback) {
+                this.tg.HapticFeedback.notificationOccurred('error');
+            }
+        }
+    }
+
+    // Обработка клика по грядке
+    handlePlotClick(plotIndex) {
+        const plot = this.gameData.garden.plots[plotIndex];
+        
+        if (!plot) {
+            // Пустая грядка - показываем выбор семян
+            this.selectedPlotIndex = plotIndex;
+            this.showSeedSelection();
+        } else if (plot.stage === 'ready') {
+            // Готовый урожай - собираем
+            this.harvestPlot(plotIndex);
+        }
+        // Если растет - просто ждем, ничего не делаем
+    }
+
+    // Показать выбор семян для посадки
+    showSeedSelection() {
+        this.updateSeedSelectionButtons();
+        document.getElementById('seedSelection').style.display = 'block';
+    }
+
+    // Скрыть выбор семян
+    hideSeedSelection() {
+        document.getElementById('seedSelection').style.display = 'none';
+        this.selectedPlotIndex = null;
+    }
+
+    // Обновить кнопки выбора семян (заблокировать если нет в инвентаре)
+    updateSeedSelectionButtons() {
+        document.querySelectorAll('.selection-seed').forEach(btn => {
+            const seedType = btn.getAttribute('data-seed');
+            const seedCount = this.gameData.garden.seeds[seedType] || 0;
+            
+            btn.disabled = seedCount === 0;
+            btn.style.opacity = seedCount > 0 ? '1' : '0.5';
+        });
+    }
+
+    // Посадить семя на выбранную грядку
+    plantSeedOnSelectedPlot(seedType) {
+        if (this.selectedPlotIndex === null) return;
+        
+        const seedCount = this.gameData.garden.seeds[seedType] || 0;
+        if (seedCount === 0) return;
+
+        // Уменьшаем количество семян
+        this.gameData.garden.seeds[seedType]--;
+
+        // Сажаем на грядку
+        this.gameData.garden.plots[this.selectedPlotIndex] = {
+            type: seedType,
+            plantTime: Date.now(),
+            stage: 'planted'
+        };
+
+        this.updateGardenDisplay();
+        this.hideSeedSelection();
+        this.saveGame();
+
+        const seedConfig = this.seedsConfig[seedType];
+        this.showNotification(`Посажено: ${seedConfig.name}! 🌱`);
+        
+        // Вибрация
+        if (this.tg && this.tg.HapticFeedback) {
+            this.tg.HapticFeedback.impactOccurred('light');
+        }
+    }
+
+    // Сбор урожая
+    harvestPlot(plotIndex) {
+        const plot = this.gameData.garden.plots[plotIndex];
+        if (!plot || plot.stage !== 'ready') return;
+
+        const seedConfig = this.seedsConfig[plot.type];
+        const reward = seedConfig.reward * this.gameData.multiplier;
+
+        // Добавляем награду к основному балансу
+        this.gameData.tokens += reward;
+
+        // Очищаем грядку
+        this.gameData.garden.plots[plotIndex] = null;
+
+        this.updateDisplay();
+        this.updateGardenDisplay();
+        this.saveGame();
+
+        this.showNotification(`Урожай собран! +${this.formatNumber(reward)} $ANON! 🎉`);
+        
+        // Вибрация успеха
+        if (this.tg && this.tg.HapticFeedback) {
+            this.tg.HapticFeedback.notificationOccurred('success');
+        }
+    }
+
+    // Обновление состояния растений
+    updatePlantGrowth() {
+        let hasChanges = false;
+        const now = Date.now();
+
+        this.gameData.garden.plots.forEach((plot, index) => {
+            if (!plot) return;
+
+            const seedConfig = this.seedsConfig[plot.type];
+            const timePassed = (now - plot.plantTime) / 1000; // в секундах
+            
+            const growthTime = seedConfig.growthTime;
+            const halfGrowthTime = growthTime / 2;
+
+            let newStage = plot.stage;
+
+            if (timePassed >= growthTime) {
+                newStage = 'ready';
+            } else if (timePassed >= halfGrowthTime) {
+                newStage = 'growing';
+            } else {
+                newStage = 'planted';
+            }
+
+            if (newStage !== plot.stage) {
+                plot.stage = newStage;
+                hasChanges = true;
+            }
+        });
+
+        if (hasChanges) {
+            this.updateGardenDisplay();
+        }
+    }
+
+    // Обновление отображения огорода
+    updateGardenDisplay() {
+        // Обновляем инвентарь семян
+        Object.keys(this.gameData.garden.seeds).forEach(seedType => {
+            const countElement = document.getElementById(seedType + 'Seeds');
+            if (countElement) {
+                countElement.textContent = this.gameData.garden.seeds[seedType];
+            }
+        });
+
+        // Обновляем грядки
+        this.gameData.garden.plots.forEach((plot, index) => {
+            const plotElement = document.querySelector(`[data-plot="${index}"]`);
+            if (!plotElement) return;
+
+            const contentElement = plotElement.querySelector('.plot-content');
+            
+            if (!plot) {
+                // Пустая грядка
+                contentElement.innerHTML = '<div class="plot-empty">📍</div>';
+                plotElement.className = 'garden-plot';
+            } else {
+                // Грядка с растением
+                const seedConfig = this.seedsConfig[plot.type];
+                const stageIcon = seedConfig.stages[plot.stage];
+                
+                let timerHtml = '';
+                if (plot.stage !== 'ready') {
+                    const now = Date.now();
+                    const timePassed = (now - plot.plantTime) / 1000;
+                    const timeLeft = Math.max(0, seedConfig.growthTime - timePassed);
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = Math.floor(timeLeft % 60);
+                    timerHtml = `<div class="plot-timer">${minutes}:${seconds.toString().padStart(2, '0')}</div>`;
+                }
+                
+                contentElement.innerHTML = `
+                    <div class="plot-${plot.stage}">${stageIcon}</div>
+                    ${timerHtml}
+                `;
+                
+                plotElement.className = `garden-plot plot-${plot.stage}`;
+            }
+        });
+
+        // Обновляем кнопки покупки семян
+        document.querySelectorAll('.seed-buy-btn').forEach(btn => {
+            const seedItem = btn.closest('.seed-item');
+            const seedType = seedItem.getAttribute('data-seed');
+            const seedConfig = this.seedsConfig[seedType];
+            
+            btn.disabled = this.gameData.tokens < seedConfig.price;
+        });
     }
 }
 

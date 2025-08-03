@@ -450,6 +450,253 @@
                 transform: translateY(-50px);
             }
         }
+
+        /* Стили для Счастливой фермы */
+        .garden-shop {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .shop-title, .inventory-title, .garden-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .seeds-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .seed-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .seed-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.02);
+        }
+
+        .seed-icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .seed-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .seed-price {
+            font-size: 0.9em;
+            color: #FFD700;
+            margin-bottom: 3px;
+        }
+
+        .seed-time {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .seed-buy-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .seed-buy-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .seed-buy-btn:disabled {
+            background: gray;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .garden-inventory {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .inventory-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .inventory-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .inventory-icon {
+            font-size: 1.5em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .inventory-count {
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .garden-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .garden-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .garden-plot {
+            aspect-ratio: 1;
+            background: rgba(139, 69, 19, 0.3);
+            border: 2px solid rgba(139, 69, 19, 0.5);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .garden-plot:hover {
+            border-color: #FFD700;
+            background: rgba(139, 69, 19, 0.4);
+        }
+
+        .plot-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .plot-empty {
+            font-size: 1.5em;
+            opacity: 0.6;
+        }
+
+        .plot-planted {
+            font-size: 1.2em;
+        }
+
+        .plot-growing {
+            font-size: 1.5em;
+            animation: grow-pulse 2s infinite ease-in-out;
+        }
+
+        .plot-ready {
+            font-size: 2em;
+            animation: ready-glow 1s infinite ease-in-out;
+        }
+
+        @keyframes grow-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes ready-glow {
+            0%, 100% { 
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            50% { 
+                transform: scale(1.1);
+                filter: brightness(1.3);
+            }
+        }
+
+        .plot-timer {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 0.6em;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .seed-selection {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 999;
+        }
+
+        .selection-title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .selection-seeds {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .selection-seed, .selection-cancel {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .selection-seed:hover, .selection-cancel:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+
+        .selection-seed:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
@@ -592,6 +839,124 @@
             </div>
         </div>
 
+        <!-- Страница Счастливая ферма -->
+        <div class="page" id="gardenPage">
+            <header class="header">
+                <div class="logo">🌻 СЧАСТЛИВАЯ ФЕРМА</div>
+                <div class="subtitle">Выращивай урожай для бонусных токенов</div>
+            </header>
+
+            <!-- Магазин семян -->
+            <div class="garden-shop">
+                <div class="shop-title">🛒 Магазин семян</div>
+                <div class="seeds-grid">
+                    <div class="seed-item" data-seed="carrot">
+                        <div class="seed-icon">🥕</div>
+                        <div class="seed-name">Морковь</div>
+                        <div class="seed-price">10 $ANON</div>
+                        <div class="seed-time">2 мин</div>
+                        <button class="seed-buy-btn">Купить</button>
+                    </div>
+                    <div class="seed-item" data-seed="potato">
+                        <div class="seed-icon">🥔</div>
+                        <div class="seed-name">Картошка</div>
+                        <div class="seed-price">25 $ANON</div>
+                        <div class="seed-time">5 мин</div>
+                        <button class="seed-buy-btn">Купить</button>
+                    </div>
+                    <div class="seed-item" data-seed="tomato">
+                        <div class="seed-icon">🍅</div>
+                        <div class="seed-name">Помидор</div>
+                        <div class="seed-price">50 $ANON</div>
+                        <div class="seed-time">10 мин</div>
+                        <button class="seed-buy-btn">Купить</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Инвентарь семян -->
+            <div class="garden-inventory">
+                <div class="inventory-title">🎒 Твои семена</div>
+                <div class="inventory-grid">
+                    <div class="inventory-item">
+                        <span class="inventory-icon">🥕</span>
+                        <span class="inventory-count" id="carrotSeeds">0</span>
+                    </div>
+                    <div class="inventory-item">
+                        <span class="inventory-icon">🥔</span>
+                        <span class="inventory-count" id="potatoSeeds">0</span>
+                    </div>
+                    <div class="inventory-item">
+                        <span class="inventory-icon">🍅</span>
+                        <span class="inventory-count" id="tomatoSeeds">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Огород -->
+            <div class="garden-area">
+                <div class="garden-title">🌱 Твой огород</div>
+                <div class="garden-grid">
+                    <div class="garden-plot" data-plot="0">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="1">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="2">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="3">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="4">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="5">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="6">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="7">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                    <div class="garden-plot" data-plot="8">
+                        <div class="plot-content">
+                            <div class="plot-empty">📍</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация о выбранном семени -->
+            <div class="seed-selection" id="seedSelection" style="display: none;">
+                <div class="selection-title">Выбери семя для посадки:</div>
+                <div class="selection-seeds">
+                    <button class="selection-seed" data-seed="carrot">🥕</button>
+                    <button class="selection-seed" data-seed="potato">🥔</button>
+                    <button class="selection-seed" data-seed="tomato">🍅</button>
+                    <button class="selection-cancel">❌</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Нижняя навигация -->
         <div class="bottom-navigation">
             <button class="nav-tab active" data-page="farm">
@@ -605,6 +970,10 @@
             <button class="nav-tab" data-page="leaderboard">
                 <span class="nav-icon">🏆</span>
                 <span class="nav-text">Топ игроков</span>
+            </button>
+            <button class="nav-tab" data-page="garden">
+                <span class="nav-icon">🌻</span>
+                <span class="nav-text">Огород</span>
             </button>
             <button class="nav-tab" data-page="profile">
                 <span class="nav-icon">👤</span>
