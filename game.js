@@ -140,8 +140,6 @@ class AnonFarm {
         document.getElementById('upgradeClick').addEventListener('click', () => this.buyUpgrade('click'));
         document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
         document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
-        document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
-        document.getElementById('apiStatusBtn').addEventListener('click', () => this.checkApiStatus());
         
         // Обработчики навигации между страницами
         this.initPageNavigation();
