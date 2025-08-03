@@ -136,7 +136,14 @@ class AnonFarm {
         this.updateDisplay();
         
         // Привязываем события
-        document.getElementById('farmButton').addEventListener('click', (e) => this.clickFarm(e));
+        const farmButton = document.getElementById('farmButton');
+        farmButton.addEventListener('click', (e) => this.clickFarm(e));
+        
+        // Защита от double-tap zoom на мобильных
+        farmButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.clickFarm(e);
+        }, { passive: false });
         document.getElementById('upgradeClick').addEventListener('click', () => this.buyUpgrade('click'));
         document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
         document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
