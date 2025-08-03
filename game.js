@@ -153,12 +153,14 @@ class AnonFarm {
         
         // Отправка статистики каждые 5 минут
         setInterval(() => {
+            console.log('⏱️ Таймер 5 минут: отправляем статистику...');
             this.sendPlayerStats();
             this.submitStatsToAPI();
         }, 300000);
         
         // Отправляем первую статистику через 10 секунд после запуска
         setTimeout(() => {
+            console.log('⏱️ Таймер 10 секунд: первая отправка статистики...');
             this.sendPlayerStats();
             this.submitStatsToAPI();
         }, 10000);
@@ -394,11 +396,15 @@ class AnonFarm {
 
     // Функция для показа топа игроков
     async showLeaderboard() {
-        // Показываем загрузку
+        // Показываем загрузку только если popup не открыт
         const loadingMessage = '🏆 ANON Farm - Топ игроков\n\n⏳ Загружаем глобальный рейтинг...';
         
         if (this.tg && this.tg.showAlert) {
-            this.tg.showAlert(loadingMessage);
+            try {
+                this.tg.showAlert(loadingMessage);
+            } catch (error) {
+                console.log('Popup уже открыт, пропускаем загрузочное сообщение');
+            }
         }
         
         try {
@@ -433,7 +439,11 @@ class AnonFarm {
                     message += '🔥 Stay $ANON!';
                     
                     if (this.tg && this.tg.showAlert) {
-                        this.tg.showAlert(message);
+                        try {
+                            this.tg.showAlert(message);
+                        } catch (error) {
+                            console.log('Popup конфликт, показываем в консоли:', message);
+                        }
                     } else {
                         alert(message);
                     }
@@ -450,7 +460,11 @@ class AnonFarm {
                                        '🔥 Stay $ANON!';
                     
                     if (this.tg && this.tg.showAlert) {
-                        this.tg.showAlert(emptyMessage);
+                        try {
+                            this.tg.showAlert(emptyMessage);
+                        } catch (error) {
+                            console.log('Popup конфликт, показываем в консоли:', emptyMessage);
+                        }
                     } else {
                         alert(emptyMessage);
                     }
@@ -492,7 +506,11 @@ class AnonFarm {
                                '🔥 Stay $ANON!';
             
             if (this.tg && this.tg.showAlert) {
-                this.tg.showAlert(errorMessage);
+                try {
+                    this.tg.showAlert(errorMessage);
+                } catch (error) {
+                    console.log('Popup конфликт, показываем ошибку в консоли:', errorMessage);
+                }
             } else {
                 alert(errorMessage);
             }
@@ -568,7 +586,11 @@ class AnonFarm {
         const loadingMessage = '🔧 Проверка API сервера...\n\n⏳ Подключение к облачному API...';
         
         if (this.tg && this.tg.showAlert) {
-            this.tg.showAlert(loadingMessage);
+            try {
+                this.tg.showAlert(loadingMessage);
+            } catch (error) {
+                console.log('Popup конфликт в checkApiStatus:', error);
+            }
         }
 
         try {
@@ -592,7 +614,13 @@ class AnonFarm {
                               '🔥 Stay $ANON!';
                 
                 if (this.tg && this.tg.showAlert) {
-                    this.tg.showAlert(message);
+                    try {
+                        this.tg.showAlert(message);
+                    } catch (error) {
+                        console.log('Ошибка показа popup топа:', error);
+                        // Показываем в console как fallback
+                        console.log('🏆 Топ игроков:', message);
+                    }
                 } else {
                     alert(message);
                 }
@@ -609,7 +637,12 @@ class AnonFarm {
                           '🔥 Stay $ANON!';
             
             if (this.tg && this.tg.showAlert) {
-                this.tg.showAlert(message);
+                try {
+                    this.tg.showAlert(message);
+                } catch (error) {
+                    console.log('Popup конфликт в checkApiStatus ошибка:', error);
+                    console.log('Сообщение об ошибке API:', message);
+                }
             } else {
                 alert(message);
             }
