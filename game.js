@@ -393,7 +393,7 @@ class AnonFarm {
             await this.submitStatsToAPI();
             
             // Запрашиваем глобальный топ через API  
-            const response = await fetch('http://localhost:8000/api/leaderboard', {
+            const response = await fetch('https://anon-farm-api.vercel.app/api/leaderboard', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -429,9 +429,9 @@ class AnonFarm {
             
             // Показываем сообщение о проблеме с API
             const errorMessage = '🏆 ANON Farm - Топ игроков\n\n' +
-                               '⚠️ API сервер недоступен\n' +
-                               '💡 Для глобального топа запустите:\n' +
-                               '   ./start-api-server.sh\n\n' +
+                               '⚠️ Облачный API недоступен\n' +
+                               '🌐 URL: anon-farm-api.vercel.app\n' +
+                               '🔧 Возможно временные проблемы\n\n' +
                                '📱 Показываем локальный топ:\n\n' +
                                this.getLocalTopText() +
                                '\n\n🔥 Stay $ANON!';
@@ -487,7 +487,7 @@ class AnonFarm {
         };
 
         try {
-            await fetch('http://localhost:8000/api/submit_stats', {
+            await fetch('https://anon-farm-api.vercel.app/api/submit_stats', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -508,7 +508,7 @@ class AnonFarm {
         }
 
         try {
-            const response = await fetch('http://localhost:8000/', {
+            const response = await fetch('https://anon-farm-api.vercel.app/', {
                 method: 'GET',
                 timeout: 5000
             });
@@ -517,7 +517,7 @@ class AnonFarm {
                 const data = await response.json();
                 const message = '✅ API Сервер работает!\n\n' +
                               `📊 Версия: ${data.version}\n` +
-                              '🌐 Адрес: localhost:8000\n' +
+                              '🌐 Адрес: anon-farm-api.vercel.app\n' +
                               '🏆 Глобальный топ доступен\n\n' +
                               '💡 Попробуйте кнопку "Топ игроков"!\n\n' +
                               '🔥 Stay $ANON!';
@@ -531,9 +531,9 @@ class AnonFarm {
                 throw new Error(`HTTP ${response.status}`);
             }
         } catch (error) {
-            const message = '❌ API Сервер недоступен\n\n' +
-                          '🔧 Для запуска выполните:\n' +
-                          '   ./start-api-server.sh\n\n' +
+            const message = '❌ Облачный API недоступен\n\n' +
+                          '🌐 URL: anon-farm-api.vercel.app\n' +
+                          '🔧 Возможно временные проблемы Vercel\n\n' +
                           '📱 Пока работает локальный топ\n' +
                           '💬 Глобальный топ в Telegram группе\n\n' +
                           `🐛 Ошибка: ${error.message}\n\n` +
