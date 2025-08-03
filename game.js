@@ -396,16 +396,7 @@ class AnonFarm {
 
     // Функция для показа топа игроков
     async showLeaderboard() {
-        // Показываем загрузку только если popup не открыт
-        const loadingMessage = '🏆 ANON Farm - Топ игроков\n\n⏳ Загружаем глобальный рейтинг...';
-        
-        if (this.tg && this.tg.showAlert) {
-            try {
-                this.tg.showAlert(loadingMessage);
-            } catch (error) {
-                console.log('Popup уже открыт, пропускаем загрузочное сообщение');
-            }
-        }
+        console.log('🏆 Запрос топа игроков...');
         
         try {
             // Запрашиваем глобальный топ через API с таймаутом (статистику отправим отдельно)
@@ -439,11 +430,14 @@ class AnonFarm {
                     message += '🔥 Stay $ANON!';
                     
                     if (this.tg && this.tg.showAlert) {
-                        try {
-                            this.tg.showAlert(message);
-                        } catch (error) {
-                            console.log('Popup конфликт, показываем в консоли:', message);
-                        }
+                        // Небольшая задержка чтобы избежать конфликта popup
+                        setTimeout(() => {
+                            try {
+                                this.tg.showAlert(message);
+                            } catch (error) {
+                                console.log('Popup конфликт, результат в консоли:', message);
+                            }
+                        }, 500);
                     } else {
                         alert(message);
                     }
@@ -460,11 +454,13 @@ class AnonFarm {
                                        '🔥 Stay $ANON!';
                     
                     if (this.tg && this.tg.showAlert) {
-                        try {
-                            this.tg.showAlert(emptyMessage);
-                        } catch (error) {
-                            console.log('Popup конфликт, показываем в консоли:', emptyMessage);
-                        }
+                        setTimeout(() => {
+                            try {
+                                this.tg.showAlert(emptyMessage);
+                            } catch (error) {
+                                console.log('Popup конфликт, пустой топ в консоли:', emptyMessage);
+                            }
+                        }, 500);
                     } else {
                         alert(emptyMessage);
                     }
@@ -506,11 +502,13 @@ class AnonFarm {
                                '🔥 Stay $ANON!';
             
             if (this.tg && this.tg.showAlert) {
-                try {
-                    this.tg.showAlert(errorMessage);
-                } catch (error) {
-                    console.log('Popup конфликт, показываем ошибку в консоли:', errorMessage);
-                }
+                setTimeout(() => {
+                    try {
+                        this.tg.showAlert(errorMessage);
+                    } catch (error) {
+                        console.log('Popup конфликт, ошибка в консоли:', errorMessage);
+                    }
+                }, 500);
             } else {
                 alert(errorMessage);
             }
