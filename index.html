@@ -213,8 +213,78 @@
             box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
         }
 
+        /* Навигационные кнопки */
+        .navigation-section {
+            margin: 25px 0;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .nav-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-button:active {
+            transform: translateY(0);
+        }
+
+        .nav-icon {
+            font-size: 1.3em;
+            display: block;
+        }
+
+        .nav-text {
+            font-size: 0.8em;
+            font-weight: 500;
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .nav-buttons {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .nav-button {
+                padding: 10px 6px;
+            }
+            
+            .nav-icon {
+                font-size: 1.1em;
+            }
+            
+            .nav-text {
+                font-size: 0.7em;
+            }
+        }
+
         .footer {
-            margin-top: 30px;
+            margin-top: 20px;
             font-size: 0.9em;
             opacity: 0.7;
         }
@@ -309,6 +379,36 @@
             </button>
         </div>
 
+        <!-- Навигационные кнопки -->
+        <div class="navigation-section">
+            <div class="nav-buttons">
+                <button class="nav-button" data-url="https://anon.org.ua">
+                    <span class="nav-icon">🌐</span>
+                    <span class="nav-text">Сайт</span>
+                </button>
+                <button class="nav-button" data-url="https://t.me/anon_ua">
+                    <span class="nav-icon">💬</span>
+                    <span class="nav-text">Telegram</span>
+                </button>
+                <button class="nav-button" data-url="https://twitter.com/anon_ua">
+                    <span class="nav-icon">🐦</span>
+                    <span class="nav-text">Twitter</span>
+                </button>
+                <button class="nav-button" data-url="https://dexscreener.com/search?q=ANON">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Charts</span>
+                </button>
+                <button class="nav-button" data-url="https://docs.anon.org.ua">
+                    <span class="nav-icon">📖</span>
+                    <span class="nav-text">Docs</span>
+                </button>
+                <button class="nav-button" data-url="https://app.uniswap.org/swap?outputCurrency=ANON">
+                    <span class="nav-icon">💱</span>
+                    <span class="nav-text">Trade</span>
+                </button>
+            </div>
+        </div>
+
         <footer class="footer">
             Stay $ANON 🔥 Создано для анонимного сообщества
         </footer>
@@ -316,6 +416,6 @@
 
     <!-- Подключение Telegram Web Apps API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=2025080322"></script>
+    <script src="game.js?v=2025080323"></script>
 </body>
 </html>

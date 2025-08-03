@@ -142,6 +142,9 @@ class AnonFarm {
         document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
         document.getElementById('apiStatusBtn').addEventListener('click', () => this.checkApiStatus());
         
+        // Обработчики навигационных кнопок
+        this.initNavigationButtons();
+        
         // Запускаем автоферму
         this.startAutoFarm();
         
@@ -732,6 +735,37 @@ class AnonFarm {
         } catch (e) {
             console.log('Ошибка сохранения в локальный топ:', e);
         }
+    }
+
+    // Инициализация навигационных кнопок
+    initNavigationButtons() {
+        const navButtons = document.querySelectorAll('.nav-button');
+        
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const url = button.getAttribute('data-url');
+                if (url) {
+                    // Логируем для отладки
+                    console.log('🌐 Открываем ссылку:', url);
+                    
+                    // Используем Telegram WebApp для открытия ссылки
+                    if (this.tg && this.tg.openLink) {
+                        this.tg.openLink(url);
+                    } else {
+                        // Fallback для обычного браузера
+                        window.open(url, '_blank');
+                    }
+                    
+                    // Добавляем визуальный эффект нажатия
+                    button.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        button.style.transform = '';
+                    }, 150);
+                }
+            });
+        });
+        
+        console.log('✅ Навигационные кнопки инициализированы');
     }
 }
 
