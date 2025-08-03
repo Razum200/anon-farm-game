@@ -235,11 +235,11 @@ class AnonFarm {
             this.submitStatsToAPI();
         }, 10000);
 
-        // Пинг API каждые 20 минут чтобы не засыпал
+        // Пинг API каждые 5 минут чтобы не засыпал
         setInterval(() => {
             console.log('🏓 Пинг API чтобы не засыпал...');
             this.pingAPI();
-        }, 1200000); // 20 минут
+        }, 300000); // 5 минут
         
         console.log('Игра ANON Farm запущена!');
     }
@@ -1006,20 +1006,32 @@ class AnonFarm {
     // Пинг API чтобы не засыпал
     async pingAPI() {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            // Пингуем главную страницу
+            const controller1 = new AbortController();
+            const timeoutId1 = setTimeout(() => controller1.abort(), 5000);
             
-            const response = await fetch('https://anon-farm-api.vercel.app/', {
+            const response1 = await fetch('https://anon-farm-api.vercel.app/', {
                 method: 'GET',
-                signal: controller.signal
+                signal: controller1.signal
             });
             
-            clearTimeout(timeoutId);
+            clearTimeout(timeoutId1);
             
-            if (response.ok) {
-                console.log('🏓 API пинг успешен - сервер не заснет');
+            // Пингуем leaderboard для загрузки данных
+            const controller2 = new AbortController();
+            const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
+            
+            const response2 = await fetch('https://anon-farm-api.vercel.app/api/leaderboard', {
+                method: 'GET',
+                signal: controller2.signal
+            });
+            
+            clearTimeout(timeoutId2);
+            
+            if (response1.ok && response2.ok) {
+                console.log('🏓 API двойной пинг успешен - сервер и данные загружены');
             } else {
-                console.log('⚠️ API пинг - неожиданный ответ:', response.status);
+                console.log('⚠️ API пинг частично провален:', response1.status, response2.status);
             }
         } catch (error) {
             if (error.name === 'AbortError') {

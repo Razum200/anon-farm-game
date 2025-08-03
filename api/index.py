@@ -15,12 +15,22 @@ def load_stats():
     global players_stats
     try:
         if os.path.exists(STATS_FILE):
+            # Проверяем размер файла
+            file_size = os.path.getsize(STATS_FILE)
+            print(f"📄 Файл найден, размер: {file_size} байт")
+            
             with open(STATS_FILE, 'r', encoding='utf-8') as f:
-                players_stats = json.load(f)
+                loaded_data = json.load(f)
+                players_stats = loaded_data
             print(f"📊 Загружено {len(players_stats)} игроков из файла")
+            
+            # Показываем первых 3 игроков для отладки
+            if players_stats:
+                top_players = list(players_stats.keys())[:3]
+                print(f"🏆 Топ игроки в файле: {top_players}")
         else:
             players_stats = {}
-            print("📊 Создан новый файл статистики")
+            print("📊 Файл не найден, создан новый словарь")
     except Exception as e:
         print(f"❌ Ошибка загрузки статистики: {e}")
         players_stats = {}
@@ -76,11 +86,15 @@ class handler(BaseHTTPRequestHandler):
             
             # Главная страница
             if path == '/' or path == '/api':
-                print(f"🏓 API пинг получен - {len(players_stats)} игроков в памяти")
+                # При каждом пинге - перезагружаем и пересохраняем файл
+                load_stats()
+                save_stats()
+                
+                print(f"🏓 API пинг получен - {len(players_stats)} игроков в памяти, файл обновлен")
                 
                 data = {
                     'message': 'ANON Farm Leaderboard API',
-                    'version': '4.0-file-storage-with-ping',
+                    'version': '5.0-aggressive-storage-with-5min-ping',
                     'status': 'running on Vercel ✅',
                     'game_url': 'https://razum200.github.io/anon-farm-game/',
                     'endpoints': {
@@ -97,8 +111,10 @@ class handler(BaseHTTPRequestHandler):
             
             # Топ игроков
             elif path == '/api/leaderboard':
-                # Загружаем актуальную статистику из файла
+                # ПРИНУДИТЕЛЬНО загружаем актуальную статистику из файла
                 load_stats()
+                
+                print(f"📊 Отдаем топ: {len(players_stats)} игроков в памяти")
                 
                 # Сортируем игроков по токенам
                 sorted_players = sorted(
