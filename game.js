@@ -151,10 +151,16 @@ class AnonFarm {
         }, 30000);
         
         // Отправка статистики каждые 5 минут
-        setInterval(() => this.sendPlayerStats(), 300000);
+        setInterval(() => {
+            this.sendPlayerStats();
+            this.submitStatsToAPI();
+        }, 300000);
         
         // Отправляем первую статистику через 10 секунд после запуска
-        setTimeout(() => this.sendPlayerStats(), 10000);
+        setTimeout(() => {
+            this.sendPlayerStats();
+            this.submitStatsToAPI();
+        }, 10000);
         
         console.log('Игра ANON Farm запущена!');
     }
@@ -373,25 +379,73 @@ class AnonFarm {
     }
 
     // Функция для показа топа игроков
-    showLeaderboard() {
-        // Отправляем команду боту для получения топа
-        this.requestLeaderboard();
+    async showLeaderboard() {
+        // Показываем загрузку
+        const loadingMessage = '🏆 ANON Farm - Топ игроков\n\n⏳ Загружаем глобальный рейтинг...';
         
-        // Показываем локальный топ пока ждем ответ от бота
+        if (this.tg && this.tg.showAlert) {
+            this.tg.showAlert(loadingMessage);
+        }
+        
+        try {
+            // Отправляем статистику перед запросом топа
+            await this.submitStatsToAPI();
+            
+            // Запрашиваем глобальный топ через API  
+            const response = await fetch('http://localhost:5000/api/leaderboard', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.leaderboard.length > 0) {
+                    let message = '🏆 ANON Farm - Глобальный топ игроков\n\n';
+                    
+                    data.leaderboard.forEach((player, index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${player.rank}.`;
+                        message += `${medal} ${player.name}\n`;
+                        message += `💰 ${player.tokens_formatted} $ANON\n`;
+                        message += `🏆 Уровень ${player.level}\n\n`;
+                    });
+                    
+                    message += `📊 Всего игроков: ${data.total_players}\n`;
+                    message += `⏰ Обновлено только что\n\n`;
+                    message += '🔥 Stay $ANON!';
+                    
+                    if (this.tg && this.tg.showAlert) {
+                        this.tg.showAlert(message);
+                    } else {
+                        alert(message);
+                    }
+                    return;
+                }
+            }
+        } catch (error) {
+            console.log('Ошибка получения глобального топа:', error);
+        }
+        
+        // Fallback - показываем локальный топ
+        this.showLocalLeaderboard();
+    }
+
+    // Резервная функция - локальный топ
+    showLocalLeaderboard() {
         const localTop = this.getLocalLeaderboard();
-        let message = '🏆 ANON Farm - Топ игроков\n\n';
+        let message = '🏆 ANON Farm - Локальный топ игроков\n\n';
         
         if (localTop.length > 0) {
-            message += '📱 Локальные лидеры:\n';
+            message += '📱 Лучшие на этом устройстве:\n';
             localTop.slice(0, 5).forEach((player, index) => {
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
                 message += `${medal} ${player.name}: ${this.formatNumber(player.tokens)} $ANON\n`;
             });
-            message += '\n💬 Глобальный топ запрошен в чате!';
+            message += '\n⚠️ Глобальный топ недоступен';
         } else {
             message += '📊 Пока нет данных о игроках\n';
-            message += '🎮 Поиграйте немного и топ появится!\n\n';
-            message += '💬 Глобальный топ запрошен в группе статистики!';
+            message += '🎮 Поиграйте немного и топ появится!';
         }
         
         message += '\n\n🔥 Stay $ANON!';
@@ -400,6 +454,31 @@ class AnonFarm {
             this.tg.showAlert(message);
         } else {
             alert(message);
+        }
+    }
+
+    // Отправка статистики в API
+    async submitStatsToAPI() {
+        if (!this.tg || !this.tg.initDataUnsafe?.user) return;
+
+        const user = this.tg.initDataUnsafe.user;
+        const statsData = {
+            player_id: user.id,
+            name: user.first_name || 'Аноним',
+            tokens: this.gameData.tokens,
+            level: this.gameData.level
+        };
+
+        try {
+            await fetch('http://localhost:5000/api/submit_stats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(statsData)
+            });
+        } catch (error) {
+            console.log('Ошибка отправки статистики в API:', error);
         }
     }
 
