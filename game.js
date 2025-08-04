@@ -1316,8 +1316,8 @@ class AnonFarm {
 
         let lastUpdate = 0;
         let lastX = 0, lastY = 0, lastZ = 0;
-        const threshold = 15; // Чувствительность тряски
-        const cooldown = 500; // Задержка между срабатываниями (мс)
+        const threshold = 7; // Чувствительность тряски (было 15)
+        const cooldown = 150; // Задержка между срабатываниями (мс) (было 500)
 
         this.handleMotion = (event) => {
             const current = event.accelerationIncludingGravity;
