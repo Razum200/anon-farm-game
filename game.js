@@ -1446,6 +1446,19 @@ class AnonFarm {
         if (targetPage) {
             targetPage.classList.add('active');
             
+            // Терминальные сообщения для навигации
+            const pageMessages = {
+                farm: '> ACCESSING MAIN FARM MODULE...',
+                upgrades: '> LOADING ENHANCEMENT PROTOCOLS...',
+                leaderboard: '> CONNECTING TO GLOBAL RANKING SYSTEM...',
+                profile: '> ANALYZING USER DATA PATTERNS...',
+                garden: '> CYBER GARDEN INTERFACE ACTIVE...'
+            };
+            
+            if (pageMessages[pageName]) {
+                this.typingSystem.createTerminalMessage(pageMessages[pageName]);
+            }
+            
             // Обновляем данные при переходе на страницы
             if (pageName === 'profile') {
                 this.updateProfile();

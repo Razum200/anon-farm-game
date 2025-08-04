@@ -580,12 +580,34 @@
             padding-bottom: 80px;
         }
 
-        /* Стили для профиля */
+        /* Стили для кибер профиля */
         .profile-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: 
+                linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1)),
+                rgba(26,26,46,0.9);
+            border: 1px solid rgba(0,255,255,0.4);
             border-radius: 20px;
             padding: 20px;
             margin: 20px 0;
+            box-shadow: 
+                0 0 25px rgba(0,255,255,0.3),
+                inset 0 0 25px rgba(0,255,255,0.05);
+            animation: profileGlow 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes profileGlow {
+            0% { 
+                border-color: rgba(0,255,255,0.4);
+                box-shadow: 
+                    0 0 25px rgba(0,255,255,0.3),
+                    inset 0 0 25px rgba(0,255,255,0.05);
+            }
+            100% { 
+                border-color: rgba(255,0,255,0.6);
+                box-shadow: 
+                    0 0 35px rgba(255,0,255,0.4),
+                    inset 0 0 35px rgba(255,0,255,0.1);
+            }
         }
 
         .profile-header {
@@ -597,7 +619,10 @@
 
         .profile-avatar {
             font-size: 3em;
-            background: rgba(255, 215, 0, 0.2);
+            background: 
+                radial-gradient(circle, rgba(0,255,255,0.3) 0%, rgba(255,0,255,0.3) 100%),
+                rgba(0,0,0,0.8);
+            border: 2px solid #00ffff;
             border-radius: 50%;
             padding: 10px;
             display: flex;
@@ -605,17 +630,39 @@
             justify-content: center;
             width: 80px;
             height: 80px;
+            box-shadow: 
+                0 0 20px rgba(0,255,255,0.5),
+                inset 0 0 20px rgba(0,255,255,0.2);
+            animation: avatarPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes avatarPulse {
+            0%, 100% { 
+                border-color: #00ffff;
+                box-shadow: 
+                    0 0 20px rgba(0,255,255,0.5),
+                    inset 0 0 20px rgba(0,255,255,0.2);
+            }
+            50% { 
+                border-color: #ff00ff;
+                box-shadow: 
+                    0 0 30px rgba(255,0,255,0.7),
+                    inset 0 0 30px rgba(255,0,255,0.3);
+            }
         }
 
         .profile-name {
             font-size: 1.3em;
             font-weight: bold;
-            color: #FFD700;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0,255,255,0.8);
+            font-family: 'Courier New', monospace;
         }
 
         .profile-id {
             font-size: 0.9em;
-            opacity: 0.7;
+            color: rgba(255,255,255,0.7);
+            font-family: 'Courier New', monospace;
         }
 
         .stats-grid {
@@ -625,54 +672,113 @@
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: 
+                linear-gradient(45deg, rgba(255,0,255,0.1), rgba(0,255,255,0.1)),
+                rgba(22,33,62,0.8);
+            border: 1px solid rgba(255,0,255,0.3);
             border-radius: 15px;
             padding: 15px;
             text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 0 10px rgba(255,0,255,0.2),
+                inset 0 0 10px rgba(255,0,255,0.05);
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0,255,255,0.5);
+            box-shadow: 
+                0 0 20px rgba(0,255,255,0.4),
+                inset 0 0 15px rgba(0,255,255,0.1);
+            transform: translateY(-2px);
         }
 
         .stat-title {
             font-size: 0.8em;
-            opacity: 0.8;
+            color: #00ffff;
             margin-bottom: 5px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 5px rgba(0,255,255,0.5);
         }
 
         .stat-value {
             font-size: 1.2em;
             font-weight: bold;
-            color: #FFD700;
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255,0,255,0.8);
+            font-family: 'Courier New', monospace;
+            animation: statValueGlow 3s ease-in-out infinite alternate;
         }
 
-        /* Стили для табов топа игроков */
+        @keyframes statValueGlow {
+            0% { 
+                color: #ff00ff;
+                text-shadow: 0 0 10px rgba(255,0,255,0.8);
+            }
+            100% { 
+                color: #ffff00;
+                text-shadow: 0 0 15px rgba(255,255,0,1), 0 0 25px rgba(255,255,0,0.5);
+            }
+        }
+
+        /* Стили для кибер рейтинга */
         .leaderboard-tabs {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             margin: 20px 0;
         }
 
         .tab-button {
             flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: 
+                linear-gradient(45deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1)),
+                rgba(26,26,46,0.8);
+            border: 1px solid rgba(0,255,255,0.4);
             border-radius: 15px;
             padding: 12px;
-            color: white;
+            color: #00ffff;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,255,255,0.5);
+            box-shadow: 
+                0 0 10px rgba(0,255,255,0.2),
+                inset 0 0 10px rgba(0,255,255,0.05);
         }
 
         .tab-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255,0,255,0.6);
+            box-shadow: 
+                0 0 20px rgba(255,0,255,0.4),
+                inset 0 0 15px rgba(255,0,255,0.1);
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255,0,255,0.8);
         }
 
         .tab-button.active {
-            background: rgba(255, 215, 0, 0.2);
-            border-color: #FFD700;
-            color: #FFD700;
+            background: 
+                linear-gradient(45deg, rgba(255,255,0,0.2), rgba(0,255,0,0.2)),
+                rgba(0,0,0,0.8);
+            border-color: #ffff00;
+            color: #ffff00;
+            text-shadow: 0 0 15px rgba(255,255,0,1);
+            box-shadow: 
+                0 0 25px rgba(255,255,0,0.5),
+                inset 0 0 20px rgba(255,255,0,0.2);
         }
 
         .leaderboard-content {
             margin: 20px 0;
+            background: 
+                linear-gradient(45deg, rgba(0,255,255,0.05), rgba(255,0,255,0.05)),
+                rgba(26,26,46,0.9);
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 
+                0 0 20px rgba(0,255,255,0.2),
+                inset 0 0 20px rgba(0,255,255,0.05);
         }
 
         .tab-content {
@@ -683,30 +789,68 @@
             display: block;
         }
 
-        /* Стили для элементов топа игроков */
+        /* Стили для элементов кибер рейтинга */
         .leaderboard-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: 
+                linear-gradient(90deg, rgba(255,0,255,0.1), rgba(0,255,255,0.1)),
+                rgba(22,33,62,0.8);
+            border: 1px solid rgba(255,0,255,0.3);
             border-radius: 15px;
             padding: 15px;
             margin: 10px 0;
             display: flex;
             align-items: center;
             gap: 15px;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            box-shadow: 
+                0 0 10px rgba(255,0,255,0.2),
+                inset 0 0 10px rgba(255,0,255,0.05);
+            animation: leaderboardPulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes leaderboardPulse {
+            0% { 
+                border-color: rgba(255,0,255,0.3);
+                box-shadow: 
+                    0 0 10px rgba(255,0,255,0.2),
+                    inset 0 0 10px rgba(255,0,255,0.05);
+            }
+            100% { 
+                border-color: rgba(0,255,255,0.5);
+                box-shadow: 
+                    0 0 15px rgba(0,255,255,0.3),
+                    inset 0 0 15px rgba(0,255,255,0.1);
+            }
+        }
+
+        .leaderboard-item:hover {
+            border-color: rgba(255,255,0,0.6);
+            box-shadow: 
+                0 0 20px rgba(255,255,0,0.4),
+                inset 0 0 15px rgba(255,255,0,0.1);
+            transform: translateY(-2px);
         }
 
         .leaderboard-item .rank {
             font-size: 1.2em;
             min-width: 40px;
+            color: #ffff00;
+            text-shadow: 0 0 10px rgba(255,255,0,0.8);
+            font-weight: bold;
         }
 
         .leaderboard-item .name {
             flex: 1;
             font-weight: bold;
+            color: #00ffff;
+            text-shadow: 0 0 5px rgba(0,255,255,0.5);
         }
 
         .leaderboard-item .tokens, .leaderboard-item .level {
-            color: #FFD700;
+            color: #ff00ff;
             font-weight: bold;
+            text-shadow: 0 0 8px rgba(255,0,255,0.8);
         }
 
         .leaderboard-footer {
@@ -714,6 +858,8 @@
             margin-top: 20px;
             opacity: 0.7;
             font-size: 0.9em;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
         }
 
         .footer {
@@ -1255,8 +1401,8 @@
         <!-- Страница Топ игроков -->
         <div class="page" id="leaderboardPage">
             <header class="header">
-                <div class="logo">🏆 ТОП ИГРОКОВ</div>
-                <div class="subtitle">Лучшие фермеры ANON</div>
+                <div class="logo glitch text-flicker" data-text="🏆 КИБЕР РЕЙТИНГ">🏆 КИБЕР РЕЙТИНГ</div>
+                <div class="subtitle typing-text matrix-text">Доминирование в цифровом мире</div>
             </header>
 
             <div class="leaderboard-tabs">
@@ -1277,8 +1423,8 @@
         <!-- Страница Профиль -->
         <div class="page" id="profilePage">
             <header class="header">
-                <div class="logo">👤 ПРОФИЛЬ</div>
-                <div class="subtitle">Твоя статистика</div>
+                <div class="logo glitch text-flicker" data-text="👤 КИБЕР ПРОФИЛЬ">👤 КИБЕР ПРОФИЛЬ</div>
+                <div class="subtitle typing-text matrix-text">Анализ твоих данных</div>
             </header>
 
             <div class="profile-stats">
@@ -1470,6 +1616,6 @@
 
     <!-- Подключение Telegram Web Apps API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=2025080409"></script>
+    <script src="game.js?v=2025080410"></script>
 </body>
 </html>
