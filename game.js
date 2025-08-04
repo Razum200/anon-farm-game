@@ -1032,6 +1032,9 @@ class AnonFarm {
         // Инициализируем огород
         this.initGarden();
         
+        // Инициализируем бильярд
+        this.initBilliard();
+        
         // Запускаем автоферму
         this.startAutoFarm();
         
@@ -2827,13 +2830,24 @@ class AnonFarm {
 
     // Инициализация бильярда
     initBilliard() {
+        console.log('🎱 Инициализация бильярда...');
         this.billiardCanvas = document.getElementById('billiardCanvas');
-        if (!this.billiardCanvas) return;
+        if (!this.billiardCanvas) {
+            console.error('❌ Canvas для бильярда не найден!');
+            return;
+        }
 
         this.billiardCtx = this.billiardCanvas.getContext('2d');
+        if (!this.billiardCtx) {
+            console.error('❌ Не удалось получить контекст canvas!');
+            return;
+        }
+        
         this.billiardScore = 0;
         this.billiardHits = 0;
         this.billiardActive = false;
+        
+        console.log('✅ Бильярд инициализирован успешно');
 
         // Настройки бильярда
         this.billiardConfig = {
@@ -2866,11 +2880,40 @@ class AnonFarm {
         this.initBilliardAccelerometer();
         
         // Запуск игрового цикла
+        console.log('🎮 Запуск игрового цикла бильярда...');
         this.billiardGameLoop();
     }
 
     // Инициализация акселерометра для бильярда
     initBilliardAccelerometer() {
+        // Управление мышью для десктопа
+        if (this.billiardCanvas) {
+            this.billiardCanvas.addEventListener('mousemove', (event) => {
+                if (!this.billiardActive) return;
+                
+                const rect = this.billiardCanvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                
+                // Направление от центра к мыши
+                const centerX = this.billiardConfig.tableWidth / 2;
+                const centerY = this.billiardConfig.tableHeight / 2;
+                const deltaX = mouseX - centerX;
+                const deltaY = mouseY - centerY;
+                
+                // Применяем силу к шару
+                this.ball.vx += deltaX * 0.01;
+                this.ball.vy += deltaY * 0.01;
+                
+                // Ограничиваем максимальную скорость
+                this.ball.vx = Math.max(-this.billiardConfig.maxSpeed, 
+                                      Math.min(this.billiardConfig.maxSpeed, this.ball.vx));
+                this.ball.vy = Math.max(-this.billiardConfig.maxSpeed, 
+                                      Math.min(this.billiardConfig.maxSpeed, this.ball.vy));
+            });
+        }
+
+        // Акселерометр для мобильных устройств
         if (!window.DeviceMotionEvent) {
             console.log('Акселерометр не поддерживается');
             return;
@@ -2910,7 +2953,10 @@ class AnonFarm {
 
     // Игровой цикл бильярда
     billiardGameLoop() {
-        if (!this.billiardCanvas || !this.billiardCtx) return;
+        if (!this.billiardCanvas || !this.billiardCtx) {
+            console.error('❌ Canvas или контекст не найдены в игровом цикле');
+            return;
+        }
 
         this.updateBilliardBall();
         this.checkBilliardCollisions();
@@ -3010,18 +3056,34 @@ class AnonFarm {
         // Очищаем canvas
         ctx.clearRect(0, 0, width, height);
 
+        // Рисуем фон стола (зеленое сукно)
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(0, 0, width, height);
+
         // Рисуем лузы
         ctx.fillStyle = '#000000';
         this.billiardConfig.pockets.forEach(pocket => {
             ctx.beginPath();
             ctx.arc(pocket.x, pocket.y, this.billiardConfig.pocketRadius, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Добавляем блик на лузе
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(pocket.x - 5, pocket.y - 5, this.billiardConfig.pocketRadius / 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000000';
         });
 
         // Рисуем границы стола
         ctx.strokeStyle = '#8B4513';
         ctx.lineWidth = 4;
         ctx.strokeRect(2, 2, width - 4, height - 4);
+        
+        // Добавляем внутреннюю границу
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(4, 4, width - 8, height - 8);
     }
 
     // Отрисовка шара
@@ -3029,32 +3091,50 @@ class AnonFarm {
         const ctx = this.billiardCtx;
         
         // Рисуем тень
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
-        ctx.arc(this.ball.x + 2, this.ball.y + 2, this.ball.radius, 0, Math.PI * 2);
+        ctx.arc(this.ball.x + 3, this.ball.y + 3, this.ball.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Рисуем шар
-        const gradient = ctx.createRadialGradient(
-            this.ball.x - this.ball.radius/3, this.ball.y - this.ball.radius/3, 0,
-            this.ball.x, this.ball.y, this.ball.radius
-        );
-        gradient.addColorStop(0, '#ffffff');
-        gradient.addColorStop(0.1, '#ffffff');
-        gradient.addColorStop(0.9, '#000000');
-        gradient.addColorStop(1, '#000000');
-
-        ctx.fillStyle = gradient;
+        // Рисуем основной шар (черный)
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
         ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Рисуем номер 8
+        // Рисуем блик на шаре
+        const highlightGradient = ctx.createRadialGradient(
+            this.ball.x - this.ball.radius/2, this.ball.y - this.ball.radius/2, 0,
+            this.ball.x, this.ball.y, this.ball.radius
+        );
+        highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+        highlightGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.3)');
+        highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.fillStyle = highlightGradient;
+        ctx.beginPath();
+        ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Рисуем номер 8 (белый круг с черным номером)
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
+        ctx.beginPath();
+        ctx.arc(this.ball.x, this.ball.y, this.ball.radius * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Рисуем номер 8
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('8', this.ball.x, this.ball.y);
+        
+        // Добавляем обводку шара
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+        ctx.stroke();
     }
 
     // Обновление отображения бильярда
@@ -3068,8 +3148,10 @@ class AnonFarm {
 
     // Активация/деактивация бильярда при переключении страниц
     setBilliardActive(active) {
+        console.log(`🎱 Бильярд ${active ? 'активирован' : 'деактивирован'}`);
         this.billiardActive = active;
         if (active && !this.billiardCanvas) {
+            console.log('🎱 Переинициализация бильярда...');
             this.initBilliard();
         }
     }
