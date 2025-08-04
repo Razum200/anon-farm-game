@@ -95,6 +95,82 @@
             14% { opacity: 1; }
         }
 
+        /* Система частиц */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .click-effect {
+            position: fixed;
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-shadow: 
+                0 0 10px #00ffff,
+                0 0 20px #00ffff;
+            animation: clickEffectAnim 1.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 1000;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes clickEffectAnim {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(-30px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-60px) scale(0.8);
+            }
+        }
+
+        .level-up-effect {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff00ff;
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 
+                0 0 20px #ff00ff,
+                0 0 40px #ff00ff;
+            animation: levelUpAnim 2s ease-out forwards;
+            pointer-events: none;
+            z-index: 1001;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes levelUpAnim {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            30% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            70% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
         .container {
             max-width: 400px;
             margin: 0 auto;
@@ -861,6 +937,9 @@
     </style>
 </head>
 <body>
+    <!-- Canvas для эффектов частиц -->
+    <canvas id="particleCanvas"></canvas>
+    
     <div class="container">
         <!-- Страница Ферма -->
         <div class="page active" id="farmPage">
@@ -1151,6 +1230,6 @@
 
     <!-- Подключение Telegram Web Apps API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=2025080404"></script>
+    <script src="game.js?v=2025080405"></script>
 </body>
 </html>

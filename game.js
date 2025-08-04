@@ -1,4 +1,118 @@
 // Игра ANON Farm - логика и интеграция с Telegram
+
+// Система частиц
+class ParticleSystem {
+    constructor() {
+        this.canvas = document.getElementById('particleCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.resizeCanvas();
+        
+        // Обновляем размер canvas при изменении окна
+        window.addEventListener('resize', () => this.resizeCanvas());
+        
+        // Запускаем анимацию
+        this.animate();
+    }
+    
+    resizeCanvas() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+    
+    createClickParticles(x, y, amount) {
+        const colors = ['#00ffff', '#ff00ff', '#ffff00'];
+        
+        for (let i = 0; i < 8; i++) {
+            this.particles.push({
+                x: x + (Math.random() - 0.5) * 20,
+                y: y + (Math.random() - 0.5) * 20,
+                vx: (Math.random() - 0.5) * 8,
+                vy: -Math.random() * 5 - 2,
+                life: 1,
+                decay: 0.02,
+                size: Math.random() * 4 + 2,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                glow: 20
+            });
+        }
+    }
+    
+    createLevelUpParticles() {
+        const colors = ['#ff00ff', '#00ffff', '#ffff00'];
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        
+        for (let i = 0; i < 30; i++) {
+            const angle = (i / 30) * Math.PI * 2;
+            this.particles.push({
+                x: centerX,
+                y: centerY,
+                vx: Math.cos(angle) * 6,
+                vy: Math.sin(angle) * 6,
+                life: 1,
+                decay: 0.015,
+                size: Math.random() * 6 + 3,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                glow: 30
+            });
+        }
+    }
+    
+    createUpgradeParticles(x, y) {
+        const colors = ['#ff00ff', '#00ffff'];
+        
+        for (let i = 0; i < 15; i++) {
+            this.particles.push({
+                x: x + (Math.random() - 0.5) * 30,
+                y: y + (Math.random() - 0.5) * 30,
+                vx: (Math.random() - 0.5) * 6,
+                vy: -Math.random() * 4 - 1,
+                life: 1,
+                decay: 0.025,
+                size: Math.random() * 5 + 2,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                glow: 25
+            });
+        }
+    }
+    
+    animate() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const particle = this.particles[i];
+            
+            // Обновляем позицию
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.vy += 0.1; // Гравитация
+            
+            // Обновляем жизнь
+            particle.life -= particle.decay;
+            
+            // Удаляем мертвые частицы
+            if (particle.life <= 0) {
+                this.particles.splice(i, 1);
+                continue;
+            }
+            
+            // Рисуем частицу
+            this.ctx.save();
+            this.ctx.globalAlpha = particle.life;
+            this.ctx.shadowBlur = particle.glow;
+            this.ctx.shadowColor = particle.color;
+            this.ctx.fillStyle = particle.color;
+            this.ctx.beginPath();
+            this.ctx.arc(particle.x, particle.y, particle.size * particle.life, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        }
+        
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
 class AnonFarm {
     constructor() {
         // Базовые параметры игры
@@ -85,6 +199,9 @@ class AnonFarm {
         
         // Запуск игры
         this.initGame();
+        
+        // Инициализируем систему частиц
+        this.particleSystem = new ParticleSystem();
     }
 
     initTelegram() {
@@ -249,11 +366,24 @@ class AnonFarm {
     clickFarm(event) {
         // Добавляем токены за клик
         const earnings = this.gameData.clickPower * this.gameData.multiplier;
+        const oldLevel = this.gameData.level;
         this.gameData.tokens += earnings;
         this.gameData.totalClicks += 1;
         
         // Обновляем уровень
         this.updateLevel();
+        
+        // Проверяем повышение уровня
+        if (this.gameData.level > oldLevel) {
+            this.showLevelUpEffect();
+            this.particleSystem.createLevelUpParticles();
+        }
+        
+        // Создаем эффект частиц при клике
+        const rect = event.target.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        this.particleSystem.createClickParticles(x, y, earnings);
         
         // Показываем анимацию
         this.showClickEffect(event, earnings);
@@ -298,6 +428,15 @@ class AnonFarm {
             this.saveGame();
             this.saveToLocalLeaderboard();
             
+            // Создаем эффект частиц для улучшения
+            const button = document.getElementById(`upgrade${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (button) {
+                const rect = button.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                this.particleSystem.createUpgradeParticles(x, y);
+            }
+            
             // Показываем уведомление
             this.showNotification(`Улучшение куплено! 🎉`);
             
@@ -340,21 +479,41 @@ class AnonFarm {
     showClickEffect(event, amount) {
         const effect = document.createElement('div');
         effect.className = 'click-effect';
-        effect.textContent = '+' + this.formatNumber(amount);
+        effect.textContent = '+' + this.formatNumber(amount) + ' $ANON';
         
-        // Позиция относительно клика
+        // Позиция относительно клика с небольшим разбросом
         const rect = event.target.getBoundingClientRect();
-        effect.style.left = (rect.left + rect.width / 2) + 'px';
-        effect.style.top = (rect.top + rect.height / 2) + 'px';
+        const offsetX = (Math.random() - 0.5) * 40;
+        const offsetY = (Math.random() - 0.5) * 20;
+        effect.style.left = (rect.left + rect.width / 2 + offsetX) + 'px';
+        effect.style.top = (rect.top + rect.height / 2 + offsetY) + 'px';
         
         document.body.appendChild(effect);
         
-        // Удаляем эффект через секунду
+        // Удаляем эффект через полторы секунды
         setTimeout(() => {
             if (effect.parentNode) {
                 effect.parentNode.removeChild(effect);
             }
-        }, 1000);
+        }, 1500);
+    }
+
+    showLevelUpEffect() {
+        const effect = document.createElement('div');
+        effect.className = 'level-up-effect';
+        effect.textContent = `LEVEL UP! ${this.gameData.level}`;
+        
+        document.body.appendChild(effect);
+        
+        // Удаляем эффект через 2 секунды
+        setTimeout(() => {
+            if (effect.parentNode) {
+                effect.parentNode.removeChild(effect);
+            }
+        }, 2000);
+        
+        // Показываем уведомление
+        this.showNotification(`🎉 Поздравляем! Достигнут ${this.gameData.level} уровень!`);
     }
 
     showNotification(message) {
