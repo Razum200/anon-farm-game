@@ -2858,12 +2858,7 @@ class AnonFarm {
             tableHeight: 420, // Уменьшено на 30% (было 600)
             pocketRadius: 15.3, // Размер шара + 2% (15 * 1.02)
             pockets: [
-                { x: 25, y: 25 },   // Верхний левый
-                { x: 150, y: 25 },  // Верхний центр
-                { x: 275, y: 25 },  // Верхний правый
-                { x: 25, y: 395 },  // Нижний левый (было 575)
-                { x: 150, y: 395 }, // Нижний центр (было 575)
-                { x: 275, y: 395 }  // Нижний правый (было 575)
+                { x: 150, y: 25 }  // Одна луза вверху по центру
             ]
         };
 
@@ -3035,6 +3030,9 @@ class AnonFarm {
         this.particleSystem.createLevelUpParticles();
         this.showNotification(`🎱 Шар в лузе! +${this.gameData.clickPower * 100} $ANON`, 'success');
         
+        // Перемещаем лузу в случайное положение
+        this.movePocketToRandomPosition();
+        
         // Перезапускаем шар
         this.resetBilliardBall();
     }
@@ -3045,6 +3043,24 @@ class AnonFarm {
         this.ball.y = this.billiardConfig.tableHeight / 2;
         this.ball.vx = 0;
         this.ball.vy = 0;
+    }
+
+    // Перемещение лузы в случайное положение
+    movePocketToRandomPosition() {
+        // Генерируем случайную позицию в верхней части стола
+        const minX = this.billiardConfig.pocketRadius + 10; // Отступ от края
+        const maxX = this.billiardConfig.tableWidth - this.billiardConfig.pocketRadius - 10;
+        const minY = this.billiardConfig.pocketRadius + 10; // Отступ от верха
+        const maxY = 80; // Максимальная высота для лузы
+        
+        const randomX = Math.random() * (maxX - minX) + minX;
+        const randomY = Math.random() * (maxY - minY) + minY;
+        
+        // Обновляем позицию лузы
+        this.billiardConfig.pockets[0].x = randomX;
+        this.billiardConfig.pockets[0].y = randomY;
+        
+        console.log(`🎯 Луза перемещена в позицию: (${Math.round(randomX)}, ${Math.round(randomY)})`);
     }
 
     // Отрисовка бильярдного стола
