@@ -616,11 +616,11 @@ class TypingSystem {
     }
     
     updateTerminalPositions() {
-        const startTop = window.innerHeight - 100; // Начинаем снизу экрана
+        const startTop = 20; // Начинаем сверху экрана
         
         this.terminalMessages.forEach((message, index) => {
-            const top = startTop - (this.terminalMessages.length - 1 - index) * this.messageSpacing;
-            message.style.top = `${Math.max(20, top)}px`; // Минимум 20px от верха
+            const top = startTop + index * this.messageSpacing;
+            message.style.top = `${top}px`;
         });
     }
     
@@ -628,7 +628,7 @@ class TypingSystem {
         if (!message || !message.parentNode) return;
         
         message.style.opacity = '0';
-        message.style.transform = 'translateY(-20px)';
+        message.style.transform = 'translateY(20px)';
         
         setTimeout(() => {
             if (message.parentNode) {
