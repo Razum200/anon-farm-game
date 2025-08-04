@@ -30,7 +30,7 @@ def load_stats_from_gist():
         # Создаем запрос с заголовками
         url = f'https://api.github.com/gists/{GIST_ID}'
         req = urllib.request.Request(url)
-        req.add_header('Authorization', f'token {GITHUB_TOKEN}')
+        req.add_header('Authorization', f'Bearer {GITHUB_TOKEN}')
         req.add_header('Accept', 'application/vnd.github.v3+json')
         req.add_header('User-Agent', 'ANON-Farm-API/1.0')
         
@@ -105,10 +105,12 @@ def save_stats_to_gist():
         data = json.dumps(gist_data).encode('utf-8')
         
         req = urllib.request.Request(url, data=data, method='PATCH')
-        req.add_header('Authorization', f'token {GITHUB_TOKEN[:8]}...{GITHUB_TOKEN[-4:]}')
+        req.add_header('Authorization', f'Bearer {GITHUB_TOKEN}')
         req.add_header('Accept', 'application/vnd.github.v3+json')
         req.add_header('Content-Type', 'application/json')
         req.add_header('User-Agent', 'ANON-Farm-API/1.0')
+        
+        print(f"🔧 Используем Bearer авторизацию: Bearer {GITHUB_TOKEN[:8]}...{GITHUB_TOKEN[-4:]}")
         
         print(f"🌐 Отправляем PATCH запрос в GitHub...")
         
