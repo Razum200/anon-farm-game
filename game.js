@@ -627,15 +627,33 @@ class AnonFarm {
 
     // Отправка статистики в API
     async submitStatsToAPI() {
-        if (!this.tg || !this.tg.initDataUnsafe?.user) return;
+        console.log('📊 submitStatsToAPI: начинаем отправку...');
+        
+        // Получаем данные пользователя (Telegram или fallback)
+        let user_id, name;
+        
+        if (this.tg && this.tg.initDataUnsafe?.user) {
+            // Данные из Telegram
+            const user = this.tg.initDataUnsafe.user;
+            user_id = user.id;
+            name = user.first_name || user.username || 'Аноним';
+            console.log('📱 Используем данные Telegram:', { user_id, name });
+        } else {
+            // Fallback для тестирования без Telegram
+            user_id = 'test_user_' + Date.now();
+            name = 'Тестовый игрок';
+            console.log('🧪 Используем тестовые данные:', { user_id, name });
+        }
 
-        const user = this.tg.initDataUnsafe.user;
         const statsData = {
-            player_id: user.id,
-            name: user.first_name || 'Аноним',
+            user_id: user_id,  // Исправлено: user_id вместо player_id
+            name: name,
             tokens: this.gameData.tokens,
-            level: this.gameData.level
+            level: this.gameData.level,
+            totalClicks: this.gameData.totalClicks || 0
         };
+        
+        console.log('📊 Данные для отправки:', statsData);
 
         try {
             const controller = new AbortController();
