@@ -672,7 +672,11 @@ class AnonFarm {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд таймаут
             
-            await fetch('https://anon-farm-api.vercel.app/api/submit_stats', {
+            console.log('🌐 Отправляем POST запрос в API...');
+            console.log('📤 URL:', 'https://anon-farm-api.vercel.app/api/submit_stats');
+            console.log('📤 Данные:', JSON.stringify(statsData));
+            
+            const response = await fetch('https://anon-farm-api.vercel.app/api/submit_stats', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -682,8 +686,28 @@ class AnonFarm {
             });
             
             clearTimeout(timeoutId);
+            
+            console.log('📡 ОТВЕТ API:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
+            
+            if (response.ok) {
+                const responseData = await response.json();
+                console.log('✅ УСПЕШНЫЙ ОТВЕТ API:', responseData);
+            } else {
+                const errorText = await response.text();
+                console.log('❌ ОШИБКА API RESPONSE:', {
+                    status: response.status,
+                    error: errorText
+                });
+            }
+            
         } catch (error) {
-            console.log('Ошибка отправки статистики в API:', error);
+            console.log('❌ КРИТИЧЕСКАЯ ОШИБКА отправки в API:', error);
+            console.log('❌ Тип ошибки:', error.name);
+            console.log('❌ Сообщение:', error.message);
         }
     }
 
