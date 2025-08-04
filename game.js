@@ -1165,14 +1165,27 @@ class AnonFarm {
             <span class="shake-text">SHAKE</span>
         `;
         
-        // Добавляем кнопку после кнопки фермы
+        // Создаем кнопку настроек тряски
+        const shakeSettingsBtn = document.createElement('button');
+        shakeSettingsBtn.id = 'shakeSettingsBtn';
+        shakeSettingsBtn.className = 'shake-settings-button';
+        shakeSettingsBtn.innerHTML = `
+            <span class="settings-icon">🔧</span>
+        `;
+        shakeSettingsBtn.title = 'Запросить разрешение на тряску';
+        
+        // Добавляем кнопки после кнопки фермы
         const farmButton = document.getElementById('farmButton');
-        farmButton.parentNode.insertBefore(shakeToggle, farmButton.nextSibling);
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'shake-buttons-container';
+        buttonContainer.appendChild(shakeToggle);
+        buttonContainer.appendChild(shakeSettingsBtn);
+        farmButton.parentNode.insertBefore(buttonContainer, farmButton.nextSibling);
         
         // Обновляем состояние кнопки
         this.updateShakeToggleState();
         
-        // Обработчик клика
+        // Обработчик клика для основной кнопки SHAKE
         shakeToggle.addEventListener('click', () => {
             const currentState = localStorage.getItem('shakeEnabled') !== 'false';
             const newState = !currentState;
@@ -1198,6 +1211,15 @@ class AnonFarm {
                 // Удаляем слушатель событий тряски при отключении
                 window.removeEventListener('devicemotion', this.handleMotion);
             }
+        });
+        
+        // Обработчик клика для кнопки настроек тряски
+        shakeSettingsBtn.addEventListener('click', () => {
+            console.log('🔧 Кнопка настроек тряски нажата - запрашиваем разрешение');
+            this.showNotification('🔧 Запрашиваем разрешение на тряску...', 'info');
+            
+            // Принудительно запрашиваем разрешение независимо от состояния
+            this.initShakeDetection(true);
         });
     }
     
