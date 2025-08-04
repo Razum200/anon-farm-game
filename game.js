@@ -1125,8 +1125,8 @@ class AnonFarm {
             texts.push(`LEGENDARY!`, `EPIC!`, `MAXIMUM!`);
         }
         
-        // Создаем больше текстов для сильной тряски
-        const count = multiplier >= 5 ? Math.floor(Math.random() * 3) + 4 : Math.floor(Math.random() * 2) + 2;
+        // Уменьшаем количество текстов - они перекрывают экран
+        const count = multiplier >= 5 ? Math.floor(Math.random() * 2) + 2 : Math.floor(Math.random() * 1) + 1;
         
         for (let i = 0; i < count; i++) {
             const text = texts[Math.floor(Math.random() * texts.length)];
@@ -1141,13 +1141,13 @@ class AnonFarm {
             const x = Math.random() * (window.innerWidth - 200) + 100 + (Math.random() - 0.5) * spread;
             const y = Math.random() * (window.innerHeight - 100) + 50 + (Math.random() - 0.5) * spread;
             
-            // Размер текста зависит от силы тряски (улучшенная формула)
-            const baseSize = 18;
-            const sizeMultiplier = 1 + (multiplier - 1) * 0.4; // Более заметное увеличение
-            const fontSize = (Math.random() * 25 + baseSize) * sizeMultiplier;
+            // Уменьшаем размер текста - он был слишком большим
+            const baseSize = 14;
+            const sizeMultiplier = 1 + (multiplier - 1) * 0.2; // Меньше увеличение
+            const fontSize = (Math.random() * 15 + baseSize) * sizeMultiplier;
             
-            // Интенсивность свечения зависит от силы тряски
-            const glowIntensity = Math.min(multiplier * 5, 30);
+            // Уменьшаем интенсивность свечения
+            const glowIntensity = Math.min(multiplier * 3, 20);
             
             shakeText.style.cssText = `
                 position: fixed;
@@ -1162,7 +1162,7 @@ class AnonFarm {
                 pointer-events: none;
                 opacity: 0;
                 transform: scale(0.5) rotate(${Math.random() * 20 - 10}deg);
-                animation: shakeTextAnim 2.5s ease-out forwards;
+                animation: shakeTextAnim 1.5s ease-out forwards;
             `;
             
             document.body.appendChild(shakeText);
@@ -1171,75 +1171,75 @@ class AnonFarm {
                 if (shakeText.parentNode) {
                     shakeText.remove();
                 }
-            }, 2500);
+            }, 1500);
         }
         
-        // Показываем дополнительную информацию о силе тряски для очень сильных трясок
-        if (multiplier >= 6) {
-            this.showShakeInfo(speed, intensity, multiplier);
-        }
+        // Убираем большие таблички - они перекрывают экран
+        // if (multiplier >= 6) {
+        //     this.showShakeInfo(speed, intensity, multiplier);
+        // }
     }
 
-    // Показ детальной информации о силе тряски
-    showShakeInfo(speed, intensity, multiplier) {
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'shake-info';
-        
-        // Определяем уровень силы тряски
-        let powerLevel = 'Обычная';
-        let powerColor = '#00ffff';
-        
-        if (multiplier >= 9) {
-            powerLevel = 'ЛЕГЕНДАРНАЯ';
-            powerColor = '#ff00ff';
-        } else if (multiplier >= 7) {
-            powerLevel = 'ЭПИЧЕСКАЯ';
-            powerColor = '#ffff00';
-        } else if (multiplier >= 5) {
-            powerLevel = 'МОЩНАЯ';
-            powerColor = '#00ff00';
-        }
-        
-        infoDiv.innerHTML = `
-            <div class="shake-info-content">
-                <div class="power-level" style="color: ${powerColor};">${powerLevel}</div>
-                <div class="shake-stats">
-                    <div>Сила: ${Math.round(speed)}</div>
-                    <div>Интенсивность: ${Math.round(intensity)}</div>
-                    <div>Множитель: x${multiplier}</div>
-                </div>
-            </div>
-        `;
-        
-        infoDiv.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(26,26,46,0.95));
-            border: 2px solid ${powerColor};
-            border-radius: 15px;
-            padding: 20px;
-            color: white;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            text-align: center;
-            z-index: 10001;
-            pointer-events: none;
-            opacity: 0;
-            box-shadow: 0 0 30px ${powerColor}40;
-            animation: shakeInfoAnim 3s ease-out forwards;
-        `;
-        
-        document.body.appendChild(infoDiv);
-        
-        // Удаляем через 3 секунды
-        setTimeout(() => {
-            if (infoDiv.parentNode) {
-                infoDiv.remove();
-            }
-        }, 3000);
-    }
+    // Показ детальной информации о силе тряски (отключено - перекрывает экран)
+    // showShakeInfo(speed, intensity, multiplier) {
+    //     const infoDiv = document.createElement('div');
+    //     infoDiv.className = 'shake-info';
+    //     
+    //     // Определяем уровень силы тряски
+    //     let powerLevel = 'Обычная';
+    //     let powerColor = '#00ffff';
+    //     
+    //     if (multiplier >= 9) {
+    //         powerLevel = 'ЛЕГЕНДАРНАЯ';
+    //         powerColor = '#ff00ff';
+    //     } else if (multiplier >= 7) {
+    //         powerLevel = 'ЭПИЧЕСКАЯ';
+    //         powerColor = '#ffff00';
+    //     } else if (multiplier >= 5) {
+    //         powerLevel = 'МОЩНАЯ';
+    //         powerColor = '#00ff00';
+    //     }
+    //     
+    //     infoDiv.innerHTML = `
+    //         <div class="shake-info-content">
+    //             <div class="power-level" style="color: ${powerColor};">${powerLevel}</div>
+    //             <div class="shake-stats">
+    //             <div>Сила: ${Math.round(speed)}</div>
+    //             <div>Интенсивность: ${Math.round(intensity)}</div>
+    //             <div>Множитель: x${multiplier}</div>
+    //         </div>
+    //     </div>
+    //     `;
+    //     
+    //     infoDiv.style.cssText = `
+    //         position: fixed;
+    //         top: 50%;
+    //         left: 50%;
+    //         transform: translate(-50%, -50%);
+    //         background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(26,26,46,0.95));
+    //         border: 2px solid ${powerColor};
+    //         border-radius: 15px;
+    //         padding: 20px;
+    //         color: white;
+    //         font-family: 'Courier New', monospace;
+    //         font-size: 14px;
+    //         text-align: center;
+    //         z-index: 10001;
+    //         pointer-events: none;
+    //         opacity: 0;
+    //         box-shadow: 0 0 30px ${powerColor}40;
+    //         animation: shakeInfoAnim 3s ease-out forwards;
+    //     `;
+    //     
+    //     document.body.appendChild(infoDiv);
+    //     
+    //     // Удаляем через 3 секунды
+    //     setTimeout(() => {
+    //         if (infoDiv.parentNode) {
+    //             infoDiv.remove();
+    //         }
+    //     }, 3000);
+    // }
 
     // Инициализация кнопки переключателя тряски
     initShakeToggle() {
