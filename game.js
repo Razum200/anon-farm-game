@@ -1116,6 +1116,7 @@ class AnonFarm {
         let lastX = 0, lastY = 0, lastZ = 0;
         const threshold = 15; // Чувствительность тряски
         const cooldown = 500; // Задержка между срабатываниями (мс)
+        let shakeEnabled = false; // Флаг активации тряски
 
         const handleMotion = (event) => {
             const current = event.accelerationIncludingGravity;
@@ -1155,25 +1156,44 @@ class AnonFarm {
             lastZ = current.z;
         };
 
-        // Запрашиваем разрешение на доступ к акселерометру
+        // Проверяем сохраненное разрешение
+        const savedPermission = localStorage.getItem('shakePermission');
+        
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
             // iOS 13+ требует разрешения
-            document.addEventListener('click', () => {
-                DeviceMotionEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            window.addEventListener('devicemotion', handleMotion, false);
-                            console.log('📱 Разрешение на тряску получено!');
-                            this.showNotification('📱 Тряска телефона активирована!', 'success');
-                        } else {
-                            console.log('📱 Разрешение на тряску отклонено');
-                        }
-                    })
-                    .catch(console.error);
-            }, { once: true });
+            if (savedPermission === 'granted') {
+                // Разрешение уже было дано, активируем сразу
+                window.addEventListener('devicemotion', handleMotion, false);
+                shakeEnabled = true;
+                console.log('📱 Разрешение на тряску уже получено!');
+            } else {
+                // Запрашиваем разрешение только один раз
+                const requestPermission = () => {
+                    DeviceMotionEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('devicemotion', handleMotion, false);
+                                shakeEnabled = true;
+                                localStorage.setItem('shakePermission', 'granted');
+                                console.log('📱 Разрешение на тряску получено!');
+                                this.showNotification('📱 Тряска телефона активирована!', 'success');
+                            } else {
+                                localStorage.setItem('shakePermission', 'denied');
+                                console.log('📱 Разрешение на тряску отклонено');
+                            }
+                        })
+                        .catch(console.error);
+                };
+
+                // Запрашиваем разрешение при первом клике
+                if (!shakeEnabled) {
+                    document.addEventListener('click', requestPermission, { once: true });
+                }
+            }
         } else {
-            // Android и другие устройства
+            // Android и другие устройства - работают сразу
             window.addEventListener('devicemotion', handleMotion, false);
+            shakeEnabled = true;
             console.log('📱 Детекция тряски активирована!');
         }
     }
