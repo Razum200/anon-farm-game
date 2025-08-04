@@ -201,18 +201,7 @@ class AnonFarm {
         document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
         document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
         
-        // ВРЕМЕННАЯ КНОПКА ДЛЯ ТЕСТИРОВАНИЯ ОТПРАВКИ СТАТИСТИКИ
-        const testStatsBtn = document.getElementById('testStatsBtn');
-        if (testStatsBtn) {
-            testStatsBtn.addEventListener('click', () => {
-                console.log('🧪 РУЧНОЙ ТЕСТ: Вызываем submitStatsToAPI()...');
-                this.submitStatsToAPI().then(() => {
-                    console.log('✅ ТЕСТ ЗАВЕРШЕН');
-                }).catch(err => {
-                    console.error('❌ ОШИБКА ТЕСТА:', err);
-                });
-            });
-        }
+
         
         // Обработчики навигации между страницами
         this.initPageNavigation();
