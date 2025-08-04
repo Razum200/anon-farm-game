@@ -1285,8 +1285,11 @@ class AnonFarm {
                         .catch(console.error);
                 };
 
-                // Если принудительный запрос или первый раз - запрашиваем сразу
-                if (forceRequest || savedPermission !== 'denied') {
+                // Если принудительный запрос - всегда запрашиваем
+                if (forceRequest) {
+                    requestPermission();
+                } else if (savedPermission !== 'denied') {
+                    // Если не было отказа - запрашиваем в первый раз
                     requestPermission();
                 } else {
                     // Если разрешение было отклонено, показываем сообщение
