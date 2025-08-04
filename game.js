@@ -29,7 +29,10 @@ class SoundSystem {
             click: this.createClickSound(),
             levelUp: this.createLevelUpSound(),
             upgrade: this.createUpgradeSound(),
-            error: this.createErrorSound()
+            error: this.createErrorSound(),
+            plant: this.createPlantSound(),
+            harvest: this.createHarvestSound(),
+            buy: this.createBuySound()
         };
     }
     
@@ -121,6 +124,75 @@ class SoundSystem {
             oscillator.type = 'square';
             oscillator.start(this.audioContext.currentTime);
             oscillator.stop(this.audioContext.currentTime + 0.3);
+        };
+    }
+    
+    createPlantSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(300, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(500, this.audioContext.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.12, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+            
+            oscillator.type = 'sine';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.2);
+        };
+    }
+    
+    createHarvestSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Создаем аккорд для звука урожая
+            const frequencies = [523, 659, 784]; // C5, E5, G5
+            
+            frequencies.forEach((freq, index) => {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.08, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+                
+                oscillator.type = 'triangle';
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.4);
+            });
+        };
+    }
+    
+    createBuySound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(800, this.audioContext.currentTime + 0.15);
+            
+            gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+            
+            oscillator.type = 'sawtooth';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.2);
         };
     }
     
@@ -312,6 +384,42 @@ class ParticleSystem {
                 size: Math.random() * 5 + 2,
                 color: colors[Math.floor(Math.random() * colors.length)],
                 glow: 25
+            });
+        }
+    }
+    
+    createGardenParticles(x, y, type = 'plant') {
+        let colors, count;
+        
+        switch(type) {
+            case 'plant':
+                colors = ['#00ff00', '#ffff00'];
+                count = 10;
+                break;
+            case 'harvest':
+                colors = ['#ff00ff', '#00ffff', '#ffff00'];
+                count = 20;
+                break;
+            case 'buy':
+                colors = ['#00ff00', '#ffffff'];
+                count = 12;
+                break;
+            default:
+                colors = ['#00ffff'];
+                count = 8;
+        }
+        
+        for (let i = 0; i < count; i++) {
+            this.particles.push({
+                x: x + (Math.random() - 0.5) * 40,
+                y: y + (Math.random() - 0.5) * 40,
+                vx: (Math.random() - 0.5) * 8,
+                vy: -Math.random() * 6 - 2,
+                life: 1,
+                decay: 0.02,
+                size: Math.random() * 6 + 2,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                glow: 30
             });
         }
     }
@@ -612,6 +720,9 @@ class AnonFarm {
             this.typingSystem.createTerminalMessage('> INITIALIZING ANON FARM PROTOCOL...');
             setTimeout(() => {
                 this.typingSystem.createTerminalMessage('> CONNECTION ESTABLISHED');
+                setTimeout(() => {
+                    this.typingSystem.createTerminalMessage('> CYBER GARDEN MODULE LOADED');
+                }, 1500);
             }, 2000);
         }, 1000);
     }
