@@ -146,6 +146,38 @@ def format_number(num):
     except:
         return "0"
 
+def remove_player_from_leaderboard(player_id):
+    """Удаляем игрока из рейтинга"""
+    global players_stats
+    
+    if player_id in players_stats:
+        removed_player = players_stats.pop(player_id)
+        print(f"🗑️ Удален игрок: {player_id} - {removed_player.get('name', 'Анонимный')}")
+        
+        # Сохраняем изменения в Gist
+        try:
+            save_stats_to_gist()
+            print(f"✅ Изменения сохранены в Gist")
+        except Exception as e:
+            print(f"⚠️ Ошибка сохранения в Gist: {e}")
+        
+        return {
+            'success': True,
+            'message': f'Игрок {removed_player.get("name", "Анонимный")} удален из рейтинга',
+            'removed_player': {
+                'id': player_id,
+                'name': removed_player.get('name', 'Анонимный'),
+                'tokens': removed_player.get('tokens', 0)
+            },
+            'total_players': len(players_stats)
+        }
+    else:
+        return {
+            'success': False,
+            'message': f'Игрок с ID {player_id} не найден в рейтинге',
+            'total_players': len(players_stats)
+        }
+
 # Загружаем статистику при запуске (безопасно)
 try:
     load_stats_from_gist()
@@ -310,6 +342,44 @@ class handler(BaseHTTPRequestHandler):
                 
                 self.wfile.write(json.dumps(data, ensure_ascii=False).encode('utf-8'))
             
+            elif path == '/api/remove_player':
+                print(f"🗑️ ПОЛУЧЕН POST ЗАПРОС /api/remove_player")
+                
+                # Читаем данные
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+                request_data = json.loads(post_data.decode('utf-8'))
+                
+                player_id = request_data.get('player_id')
+                
+                if not player_id:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    
+                    data = {
+                        'success': False,
+                        'error': 'player_id is required'
+                    }
+                    self.wfile.write(json.dumps(data, ensure_ascii=False).encode('utf-8'))
+                    return
+                
+                print(f"🗑️ УДАЛЕНИЕ ИГРОКА:")
+                print(f"   - player_id: {player_id}")
+                print(f"   - Игроков в памяти: {len(players_stats)}")
+                
+                # Удаляем игрока
+                result = remove_player_from_leaderboard(player_id)
+                
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                print(f"✅ ОТВЕТ ОТПРАВЛЕН: {result}")
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+            
             else:
                 self.send_response(404)
                 self.send_header('Content-Type', 'application/json')
@@ -332,6 +402,6 @@ class handler(BaseHTTPRequestHandler):
         """CORS обработка"""
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
