@@ -1,5 +1,150 @@
 // Игра ANON Farm - логика и интеграция с Telegram
 
+// Звуковая система
+class SoundSystem {
+    constructor() {
+        this.enabled = true;
+        this.audioContext = null;
+        this.sounds = {};
+        
+        // Инициализируем AudioContext при первом взаимодействии
+        this.initAudioContext();
+        this.createSounds();
+    }
+    
+    initAudioContext() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.log('AudioContext не поддерживается');
+            this.enabled = false;
+        }
+    }
+    
+    // Создаем киберпанк звуки программно
+    createSounds() {
+        if (!this.enabled) return;
+        
+        this.sounds = {
+            click: this.createClickSound(),
+            levelUp: this.createLevelUpSound(),
+            upgrade: this.createUpgradeSound(),
+            error: this.createErrorSound()
+        };
+    }
+    
+    createClickSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, this.audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+            
+            oscillator.type = 'square';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.1);
+        };
+    }
+    
+    createLevelUpSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Создаем последовательность тонов для leveling up
+            const frequencies = [440, 554, 659, 880];
+            
+            frequencies.forEach((freq, index) => {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime + index * 0.15);
+                gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime + index * 0.15);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + index * 0.15 + 0.3);
+                
+                oscillator.type = 'sawtooth';
+                oscillator.start(this.audioContext.currentTime + index * 0.15);
+                oscillator.stop(this.audioContext.currentTime + index * 0.15 + 0.3);
+            });
+        };
+    }
+    
+    createUpgradeSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(1000, this.audioContext.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+            
+            oscillator.type = 'triangle';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.3);
+        };
+    }
+    
+    createErrorSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(150, this.audioContext.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+            
+            oscillator.type = 'square';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.3);
+        };
+    }
+    
+    play(soundName) {
+        if (!this.enabled || !this.sounds[soundName]) return;
+        
+        // Разблокируем AudioContext если нужно
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+        
+        try {
+            this.sounds[soundName]();
+        } catch (e) {
+            console.log('Ошибка воспроизведения звука:', e);
+        }
+    }
+    
+    toggle() {
+        this.enabled = !this.enabled;
+        return this.enabled;
+    }
+}
+
 // Система частиц
 class ParticleSystem {
     constructor() {
@@ -202,6 +347,9 @@ class AnonFarm {
         
         // Инициализируем систему частиц
         this.particleSystem = new ParticleSystem();
+        
+        // Инициализируем звуковую систему
+        this.soundSystem = new SoundSystem();
     }
 
     initTelegram() {
@@ -396,6 +544,9 @@ class AnonFarm {
             this.saveToLocalLeaderboard();
         }
         
+        // Звуковой эффект клика
+        this.soundSystem.play('click');
+        
         // Вибрация в Telegram
         if (this.tg && this.tg.HapticFeedback) {
             this.tg.HapticFeedback.impactOccurred('light');
@@ -437,6 +588,9 @@ class AnonFarm {
                 this.particleSystem.createUpgradeParticles(x, y);
             }
             
+            // Звуковой эффект покупки улучшения
+            this.soundSystem.play('upgrade');
+            
             // Показываем уведомление
             this.showNotification(`Улучшение куплено! 🎉`);
             
@@ -446,6 +600,7 @@ class AnonFarm {
             }
         } else {
             // Недостаточно токенов
+            this.soundSystem.play('error');
             this.showNotification(`Недостаточно токенов! Нужно еще ${this.formatNumber(cost - this.gameData.tokens)}`);
             
             if (this.tg && this.tg.HapticFeedback) {
@@ -504,6 +659,9 @@ class AnonFarm {
         effect.textContent = `LEVEL UP! ${this.gameData.level}`;
         
         document.body.appendChild(effect);
+        
+        // Звуковой эффект повышения уровня
+        this.soundSystem.play('levelUp');
         
         // Удаляем эффект через 2 секунды
         setTimeout(() => {
