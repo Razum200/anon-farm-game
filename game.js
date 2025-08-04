@@ -514,6 +514,9 @@ class TypingSystem {
     constructor() {
         this.typingQueue = [];
         this.isTyping = false;
+        this.terminalMessages = [];
+        this.maxTerminalMessages = 5;
+        this.messageSpacing = 40; // Расстояние между сообщениями
     }
     
     typeText(element, text, speed = 50, callback = null) {
@@ -576,20 +579,67 @@ class TypingSystem {
         const terminalDiv = document.createElement('div');
         terminalDiv.className = 'terminal-text';
         terminalDiv.style.position = 'fixed';
-        terminalDiv.style.top = '20px';
         terminalDiv.style.left = '20px';
         terminalDiv.style.zIndex = '1002';
         terminalDiv.style.maxWidth = '300px';
+        terminalDiv.style.opacity = '0';
+        terminalDiv.style.transform = 'translateY(20px)';
+        terminalDiv.style.transition = 'all 0.3s ease-out';
+        
+        // Добавляем сообщение в массив
+        this.terminalMessages.push(terminalDiv);
+        
+        // Удаляем старые сообщения если их слишком много
+        while (this.terminalMessages.length > this.maxTerminalMessages) {
+            const oldMessage = this.terminalMessages.shift();
+            if (oldMessage && oldMessage.parentNode) {
+                oldMessage.remove();
+            }
+        }
+        
+        // Позиционируем сообщения снизу вверх
+        this.updateTerminalPositions();
         
         container.appendChild(terminalDiv);
         
+        // Анимация появления
+        setTimeout(() => {
+            terminalDiv.style.opacity = '1';
+            terminalDiv.style.transform = 'translateY(0)';
+        }, 10);
+        
         this.typeText(terminalDiv, text, 30, () => {
             setTimeout(() => {
-                if (terminalDiv.parentNode) {
-                    terminalDiv.parentNode.removeChild(terminalDiv);
-                }
+                this.removeTerminalMessage(terminalDiv);
             }, 3000);
         });
+    }
+    
+    updateTerminalPositions() {
+        const startTop = window.innerHeight - 100; // Начинаем снизу экрана
+        
+        this.terminalMessages.forEach((message, index) => {
+            const top = startTop - (this.terminalMessages.length - 1 - index) * this.messageSpacing;
+            message.style.top = `${Math.max(20, top)}px`; // Минимум 20px от верха
+        });
+    }
+    
+    removeTerminalMessage(message) {
+        if (!message || !message.parentNode) return;
+        
+        message.style.opacity = '0';
+        message.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+            if (message.parentNode) {
+                message.remove();
+            }
+            const index = this.terminalMessages.indexOf(message);
+            if (index > -1) {
+                this.terminalMessages.splice(index, 1);
+            }
+            this.updateTerminalPositions();
+        }, 300);
     }
     
     addMatrixEffect(element) {
