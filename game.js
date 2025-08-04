@@ -1022,7 +1022,7 @@ class AnonFarm {
         this.initShakeToggle();
         
         // Инициализируем тряску телефона для фермы
-        this.initShakeDetection();
+        this.initShakeDetection(false);
         
 
         
@@ -1182,8 +1182,8 @@ class AnonFarm {
             
             if (newState) {
                 this.showNotification('📱 Тряска телефона включена!', 'success');
-                // Переинициализируем детекцию тряски
-                this.initShakeDetection();
+                // Переинициализируем детекцию тряски с возможностью запроса разрешения
+                this.initShakeDetection(true);
             } else {
                 this.showNotification('📱 Тряска телефона отключена!', 'info');
             }
@@ -1207,7 +1207,7 @@ class AnonFarm {
     }
 
     // Инициализация детекции тряски телефона
-    initShakeDetection() {
+    initShakeDetection(forceRequest = false) {
         if (!window.DeviceMotionEvent) {
             console.log('📱 DeviceMotion не поддерживается на этом устройстве');
             return;
@@ -1267,7 +1267,7 @@ class AnonFarm {
                 window.addEventListener('devicemotion', handleMotion, false);
                 console.log('📱 Разрешение на тряску уже получено!');
             } else if (shakeEnabled) {
-                // Запрашиваем разрешение только один раз
+                // Запрашиваем разрешение
                 const requestPermission = () => {
                     DeviceMotionEvent.requestPermission()
                         .then(permissionState => {
@@ -1279,13 +1279,19 @@ class AnonFarm {
                             } else {
                                 localStorage.setItem('shakePermission', 'denied');
                                 console.log('📱 Разрешение на тряску отклонено');
+                                this.showNotification('📱 Разрешение отклонено. Нажмите SHAKE еще раз для повторного запроса.', 'info');
                             }
                         })
                         .catch(console.error);
                 };
 
-                // Запрашиваем разрешение при первом клике
-                document.addEventListener('click', requestPermission, { once: true });
+                // Если принудительный запрос или первый раз - запрашиваем сразу
+                if (forceRequest || savedPermission !== 'denied') {
+                    requestPermission();
+                } else {
+                    // Если разрешение было отклонено, показываем сообщение
+                    this.showNotification('📱 Нажмите SHAKE еще раз для запроса разрешения', 'info');
+                }
             }
         } else if (shakeEnabled) {
             // Android и другие устройства - работают сразу
