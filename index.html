@@ -1672,6 +1672,59 @@
             font-size: 2em;
             color: #ff00ff;
             text-shadow: 0 0 20px rgba(255,0,255,1);
+        }
+
+        /* Стили для бильярда */
+        .billiard-game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .billiard-table {
+            position: relative;
+            border: 4px solid #8B4513;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #228B22, #006400);
+            box-shadow: 
+                0 0 30px rgba(139, 69, 19, 0.8),
+                inset 0 0 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        #billiardCanvas {
+            display: block;
+            background: transparent;
+            border-radius: 16px;
+        }
+
+        .billiard-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: center;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #00ffff;
+        }
+
+        .controls-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ff00ff;
+            font-size: 0.9em;
+        }
             animation: cyberReady 0.8s infinite ease-in-out;
         }
 
@@ -2058,6 +2111,29 @@
             </div>
         </div>
 
+        <!-- Страница Бильярд -->
+        <div class="page" id="billiardPage">
+            <header class="header">
+                <div class="logo glitch text-flicker" data-text="🎱 КИБЕР БИЛЬЯРД">🎱 КИБЕР БИЛЬЯРД</div>
+                <div class="subtitle typing-text matrix-text">Управляй шаром через акселерометр</div>
+            </header>
+
+            <div class="billiard-game-container">
+                <div class="billiard-table">
+                    <canvas id="billiardCanvas" width="300" height="600"></canvas>
+                    <div class="billiard-info">
+                        <div class="score-display">
+                            <span>Очки: <span id="billiardScore">0</span></span>
+                            <span>Попадания: <span id="billiardHits">0</span></span>
+                        </div>
+                        <div class="controls-info">
+                            <span>🎮 Наклони телефон для управления</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Нижняя навигация -->
         <div class="bottom-navigation">
             <button class="nav-tab active" data-page="farm">
@@ -2076,10 +2152,14 @@
                 <span class="nav-icon">🌻</span>
                 <span class="nav-text">Огород</span>
             </button>
-            <button class="nav-tab" data-page="profile">
-                <span class="nav-icon">👤</span>
-                <span class="nav-text">Профиль</span>
-            </button>
+                    <button class="nav-tab" data-page="profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Профиль</span>
+        </button>
+        <button class="nav-tab" data-page="billiard">
+            <span class="nav-icon">🎱</span>
+            <span class="nav-text">Бильярд</span>
+        </button>
         </div>
 
         <footer class="footer">

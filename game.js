@@ -2376,7 +2376,8 @@ class AnonFarm {
                 upgrades: '> LOADING ENHANCEMENT PROTOCOLS...',
                 leaderboard: '> CONNECTING TO GLOBAL RANKING SYSTEM...',
                 profile: '> ANALYZING USER DATA PATTERNS...',
-                garden: '> CYBER GARDEN INTERFACE ACTIVE...'
+                garden: '> CYBER GARDEN INTERFACE ACTIVE...',
+                billiard: '> INITIALIZING CYBER BILLIARD SYSTEM...'
             };
             
             if (pageMessages[pageName]) {
@@ -2391,6 +2392,11 @@ class AnonFarm {
                 this.loadLeaderboards();
             } else if (pageName === 'garden') {
                 this.updateGardenDisplay();
+            } else if (pageName === 'billiard') {
+                this.setBilliardActive(true);
+            } else {
+                // Деактивируем бильярд при переходе на другие страницы
+                this.setBilliardActive(false);
             }
         }
     }
@@ -2817,6 +2823,255 @@ class AnonFarm {
             
             btn.disabled = this.gameData.tokens < seedConfig.price;
         });
+    }
+
+    // Инициализация бильярда
+    initBilliard() {
+        this.billiardCanvas = document.getElementById('billiardCanvas');
+        if (!this.billiardCanvas) return;
+
+        this.billiardCtx = this.billiardCanvas.getContext('2d');
+        this.billiardScore = 0;
+        this.billiardHits = 0;
+        this.billiardActive = false;
+
+        // Настройки бильярда
+        this.billiardConfig = {
+            ballRadius: 15,
+            ballSpeed: 0.98, // Затухание скорости
+            maxSpeed: 8,
+            tableWidth: 300,
+            tableHeight: 600,
+            pocketRadius: 25,
+            pockets: [
+                { x: 25, y: 25 },   // Верхний левый
+                { x: 150, y: 25 },  // Верхний центр
+                { x: 275, y: 25 },  // Верхний правый
+                { x: 25, y: 575 },  // Нижний левый
+                { x: 150, y: 575 }, // Нижний центр
+                { x: 275, y: 575 }  // Нижний правый
+            ]
+        };
+
+        // Состояние шара
+        this.ball = {
+            x: 150,
+            y: 300,
+            vx: 0,
+            vy: 0,
+            radius: this.billiardConfig.ballRadius
+        };
+
+        // Инициализация акселерометра
+        this.initBilliardAccelerometer();
+        
+        // Запуск игрового цикла
+        this.billiardGameLoop();
+    }
+
+    // Инициализация акселерометра для бильярда
+    initBilliardAccelerometer() {
+        if (!window.DeviceMotionEvent) {
+            console.log('Акселерометр не поддерживается');
+            return;
+        }
+
+        let lastUpdate = 0;
+        const threshold = 0.5;
+
+        window.addEventListener('devicemotion', (event) => {
+            if (!this.billiardActive) return;
+
+            const now = Date.now();
+            if (now - lastUpdate < 50) return; // Ограничиваем частоту обновлений
+
+            const acceleration = event.accelerationIncludingGravity;
+            if (!acceleration) return;
+
+            // Наклон телефона влияет на скорость шара
+            const tiltX = acceleration.x / 9.8; // Нормализуем к g
+            const tiltY = acceleration.y / 9.8;
+
+            // Применяем наклон только если он достаточно сильный
+            if (Math.abs(tiltX) > threshold || Math.abs(tiltY) > threshold) {
+                this.ball.vx += tiltX * 0.5;
+                this.ball.vy += tiltY * 0.5;
+
+                // Ограничиваем максимальную скорость
+                this.ball.vx = Math.max(-this.billiardConfig.maxSpeed, 
+                                      Math.min(this.billiardConfig.maxSpeed, this.ball.vx));
+                this.ball.vy = Math.max(-this.billiardConfig.maxSpeed, 
+                                      Math.min(this.billiardConfig.maxSpeed, this.ball.vy));
+            }
+
+            lastUpdate = now;
+        });
+    }
+
+    // Игровой цикл бильярда
+    billiardGameLoop() {
+        if (!this.billiardCanvas || !this.billiardCtx) return;
+
+        this.updateBilliardBall();
+        this.checkBilliardCollisions();
+        this.drawBilliardTable();
+        this.drawBilliardBall();
+
+        requestAnimationFrame(() => this.billiardGameLoop());
+    }
+
+    // Обновление позиции шара
+    updateBilliardBall() {
+        if (!this.billiardActive) return;
+
+        // Применяем скорость
+        this.ball.x += this.ball.vx;
+        this.ball.y += this.ball.vy;
+
+        // Затухание скорости
+        this.ball.vx *= this.billiardConfig.ballSpeed;
+        this.ball.vy *= this.billiardConfig.ballSpeed;
+
+        // Останавливаем шар если скорость очень мала
+        if (Math.abs(this.ball.vx) < 0.1) this.ball.vx = 0;
+        if (Math.abs(this.ball.vy) < 0.1) this.ball.vy = 0;
+    }
+
+    // Проверка столкновений
+    checkBilliardCollisions() {
+        if (!this.billiardActive) return;
+
+        // Столкновения со стенками
+        if (this.ball.x - this.ball.radius < 0) {
+            this.ball.x = this.ball.radius;
+            this.ball.vx = -this.ball.vx * 0.8;
+        }
+        if (this.ball.x + this.ball.radius > this.billiardConfig.tableWidth) {
+            this.ball.x = this.billiardConfig.tableWidth - this.ball.radius;
+            this.ball.vx = -this.ball.vx * 0.8;
+        }
+        if (this.ball.y - this.ball.radius < 0) {
+            this.ball.y = this.ball.radius;
+            this.ball.vy = -this.ball.vy * 0.8;
+        }
+        if (this.ball.y + this.ball.radius > this.billiardConfig.tableHeight) {
+            this.ball.y = this.billiardConfig.tableHeight - this.ball.radius;
+            this.ball.vy = -this.ball.vy * 0.8;
+        }
+
+        // Проверка попадания в лузы
+        this.billiardConfig.pockets.forEach(pocket => {
+            const distance = Math.sqrt(
+                Math.pow(this.ball.x - pocket.x, 2) + 
+                Math.pow(this.ball.y - pocket.y, 2)
+            );
+
+            if (distance < this.billiardConfig.pocketRadius) {
+                this.billiardBallInPocket();
+            }
+        });
+    }
+
+    // Шар попал в лузу
+    billiardBallInPocket() {
+        this.billiardHits++;
+        this.billiardScore += this.gameData.clickPower * 100; // Награда = сила клика * 100
+        
+        // Добавляем токены в игру
+        this.gameData.tokens += this.gameData.clickPower * 100;
+        
+        // Обновляем отображение
+        this.updateBilliardDisplay();
+        this.updateDisplay();
+        
+        // Эффекты
+        this.soundSystem.play('success');
+        this.particleSystem.createLevelUpParticles();
+        this.showNotification(`🎱 Шар в лузе! +${this.gameData.clickPower * 100} $ANON`, 'success');
+        
+        // Перезапускаем шар
+        this.resetBilliardBall();
+    }
+
+    // Сброс шара в центр
+    resetBilliardBall() {
+        this.ball.x = this.billiardConfig.tableWidth / 2;
+        this.ball.y = this.billiardConfig.tableHeight / 2;
+        this.ball.vx = 0;
+        this.ball.vy = 0;
+    }
+
+    // Отрисовка бильярдного стола
+    drawBilliardTable() {
+        const ctx = this.billiardCtx;
+        const width = this.billiardConfig.tableWidth;
+        const height = this.billiardConfig.tableHeight;
+
+        // Очищаем canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // Рисуем лузы
+        ctx.fillStyle = '#000000';
+        this.billiardConfig.pockets.forEach(pocket => {
+            ctx.beginPath();
+            ctx.arc(pocket.x, pocket.y, this.billiardConfig.pocketRadius, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Рисуем границы стола
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, width - 4, height - 4);
+    }
+
+    // Отрисовка шара
+    drawBilliardBall() {
+        const ctx = this.billiardCtx;
+        
+        // Рисуем тень
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.arc(this.ball.x + 2, this.ball.y + 2, this.ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Рисуем шар
+        const gradient = ctx.createRadialGradient(
+            this.ball.x - this.ball.radius/3, this.ball.y - this.ball.radius/3, 0,
+            this.ball.x, this.ball.y, this.ball.radius
+        );
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(0.1, '#ffffff');
+        gradient.addColorStop(0.9, '#000000');
+        gradient.addColorStop(1, '#000000');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Рисуем номер 8
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('8', this.ball.x, this.ball.y);
+    }
+
+    // Обновление отображения бильярда
+    updateBilliardDisplay() {
+        const scoreElement = document.getElementById('billiardScore');
+        const hitsElement = document.getElementById('billiardHits');
+        
+        if (scoreElement) scoreElement.textContent = this.billiardScore;
+        if (hitsElement) hitsElement.textContent = this.billiardHits;
+    }
+
+    // Активация/деактивация бильярда при переключении страниц
+    setBilliardActive(active) {
+        this.billiardActive = active;
+        if (active && !this.billiardCanvas) {
+            this.initBilliard();
+        }
     }
 }
 
