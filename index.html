@@ -2127,6 +2127,7 @@
                         <div class="score-display">
                             <span>Очки: <span id="billiardScore">0</span></span>
                             <span>Попадания: <span id="billiardHits">0</span></span>
+                            <span>Комбо: <span id="billiardCombo" style="display: none; color: #ff00ff; font-weight: bold;">x1</span></span>
                         </div>
                         <div class="controls-info">
                             <span>🎮 Наклони телефон или двигай мышью для управления</span>
@@ -2134,6 +2135,17 @@
                         <div style="color: #ffff00; font-size: 0.8em; margin-top: 10px;">
                             💡 Попади в лузу! После попадания она переместится в случайное место
                         </div>
+                        <button id="toggleTrajectory" style="
+                            background: linear-gradient(45deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2));
+                            border: 1px solid #00ffff;
+                            color: #00ffff;
+                            padding: 8px 16px;
+                            border-radius: 10px;
+                            margin-top: 10px;
+                            cursor: pointer;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9em;
+                        ">🎯 Показать траекторию</button>
                     </div>
                 </div>
             </div>

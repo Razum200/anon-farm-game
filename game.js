@@ -38,7 +38,10 @@ class SoundSystem {
             notification: this.createNotificationSound(),
             navigation: this.createNavigationSound(),
             success: this.createSuccessSound(),
-            coin: this.createCoinSound()
+            coin: this.createCoinSound(),
+            billiardHit: this.createBilliardHitSound(),
+            billiardWall: this.createBilliardWallSound(),
+            billiardCombo: this.createBilliardComboSound()
         };
     }
     
@@ -344,6 +347,75 @@ class SoundSystem {
             oscillator.type = 'sine';
             oscillator.start(this.audioContext.currentTime);
             oscillator.stop(this.audioContext.currentTime + 0.2);
+        };
+    }
+
+    createBilliardHitSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+            
+            oscillator.type = 'triangle';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.3);
+        };
+    }
+
+    createBilliardWallSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(300, this.audioContext.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+            
+            oscillator.type = 'square';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.2);
+        };
+    }
+
+    createBilliardComboSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Создаем последовательность тонов для комбо
+            const frequencies = [440, 554, 659, 880, 1109];
+            
+            frequencies.forEach((freq, index) => {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime + index * 0.1);
+                gainNode.gain.setValueAtTime(0.15, this.audioContext.currentTime + index * 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + index * 0.1 + 0.2);
+                
+                oscillator.type = 'sawtooth';
+                oscillator.start(this.audioContext.currentTime + index * 0.1);
+                oscillator.stop(this.audioContext.currentTime + index * 0.1 + 0.2);
+            });
         };
     }
     
@@ -2845,7 +2917,18 @@ class AnonFarm {
         
         this.billiardScore = 0;
         this.billiardHits = 0;
+        this.billiardCombo = 0;
         this.billiardActive = false;
+        this.billiardAchievements = {
+            firstHit: false,
+            combo3: false,
+            combo5: false,
+            combo10: false,
+            score1000: false,
+            score5000: false,
+            hits10: false,
+            hits50: false
+        };
         
         console.log('✅ Бильярд инициализирован успешно');
 
@@ -2871,8 +2954,22 @@ class AnonFarm {
             radius: this.billiardConfig.ballRadius
         };
 
+        // Система подсказок
+        this.showTrajectory = false;
+        this.trajectoryPoints = [];
+
         // Инициализация акселерометра
         this.initBilliardAccelerometer();
+        
+        // Кнопка траектории
+        const trajectoryButton = document.getElementById('toggleTrajectory');
+        if (trajectoryButton) {
+            trajectoryButton.addEventListener('click', () => {
+                this.showTrajectory = !this.showTrajectory;
+                trajectoryButton.textContent = this.showTrajectory ? '🎯 Скрыть траекторию' : '🎯 Показать траекторию';
+                this.soundSystem.play('navigation');
+            });
+        }
         
         // Запуск игрового цикла
         console.log('🎮 Запуск игрового цикла бильярда...');
@@ -2955,8 +3052,10 @@ class AnonFarm {
 
         this.updateBilliardBall();
         this.checkBilliardCollisions();
+        this.calculateTrajectory();
         this.drawBilliardTable();
         this.drawBilliardBall();
+        this.drawTrajectory();
 
         requestAnimationFrame(() => this.billiardGameLoop());
     }
@@ -2986,18 +3085,26 @@ class AnonFarm {
         if (this.ball.x - this.ball.radius < 0) {
             this.ball.x = this.ball.radius;
             this.ball.vx = -this.ball.vx * 0.8;
+            this.soundSystem.play('billiardWall');
+            this.resetBilliardCombo();
         }
         if (this.ball.x + this.ball.radius > this.billiardConfig.tableWidth) {
             this.ball.x = this.billiardConfig.tableWidth - this.ball.radius;
             this.ball.vx = -this.ball.vx * 0.8;
+            this.soundSystem.play('billiardWall');
+            this.resetBilliardCombo();
         }
         if (this.ball.y - this.ball.radius < 0) {
             this.ball.y = this.ball.radius;
             this.ball.vy = -this.ball.vy * 0.8;
+            this.soundSystem.play('billiardWall');
+            this.resetBilliardCombo();
         }
         if (this.ball.y + this.ball.radius > this.billiardConfig.tableHeight) {
             this.ball.y = this.billiardConfig.tableHeight - this.ball.radius;
             this.ball.vy = -this.ball.vy * 0.8;
+            this.soundSystem.play('billiardWall');
+            this.resetBilliardCombo();
         }
 
         // Проверка попадания в лузы
@@ -3021,17 +3128,43 @@ class AnonFarm {
         // Добавляем токены в игру
         this.gameData.tokens += this.gameData.clickPower * 100;
         
+        // Система комбо
+        this.billiardCombo = (this.billiardCombo || 0) + 1;
+        const comboBonus = Math.min(this.billiardCombo * 10, 50); // Максимум +50 за комбо
+        this.billiardScore += comboBonus;
+        this.gameData.tokens += comboBonus;
+        
+        // Звук комбо
+        if (this.billiardCombo > 1) {
+            this.soundSystem.play('billiardCombo');
+        }
+        
         // Обновляем отображение
         this.updateBilliardDisplay();
         this.updateDisplay();
         
-        // Эффекты
-        this.soundSystem.play('success');
-        this.particleSystem.createLevelUpParticles();
-        this.showNotification(`🎱 Шар в лузе! +${this.gameData.clickPower * 100} $ANON`, 'success');
+        // Проверяем достижения
+        this.checkBilliardAchievements();
         
-        // Перемещаем лузу в случайное положение
-        this.movePocketToRandomPosition();
+        // Эффекты
+        this.soundSystem.play('billiardHit');
+        this.particleSystem.createLevelUpParticles();
+        
+        // Создаем частицы в месте попадания
+        if (this.billiardCanvas) {
+            const rect = this.billiardCanvas.getBoundingClientRect();
+            const pocket = this.billiardConfig.pockets[0];
+            const x = rect.left + pocket.x;
+            const y = rect.top + pocket.y;
+            this.particleSystem.createClickParticles(x, y, 15);
+        }
+        
+        // Уведомление с комбо
+        const comboText = this.billiardCombo > 1 ? ` (Комбо x${this.billiardCombo}!)` : '';
+        this.showNotification(`🎱 Шар в лузе! +${this.gameData.clickPower * 100} $ANON${comboText}`, 'success');
+        
+        // Анимация перемещения лузы
+        this.animatePocketMove();
         
         // Перезапускаем шар
         this.resetBilliardBall();
@@ -3043,6 +3176,114 @@ class AnonFarm {
         this.ball.y = this.billiardConfig.tableHeight / 2;
         this.ball.vx = 0;
         this.ball.vy = 0;
+    }
+
+    // Сброс комбо
+    resetBilliardCombo() {
+        if (this.billiardCombo > 1) {
+            this.billiardCombo = 0;
+            this.updateBilliardDisplay();
+            this.showNotification('💥 Комбо потеряно!', 'warning');
+        }
+    }
+
+    // Расчет траектории шара
+    calculateTrajectory() {
+        if (!this.showTrajectory) return;
+        
+        this.trajectoryPoints = [];
+        let x = this.ball.x;
+        let y = this.ball.y;
+        let vx = this.ball.vx;
+        let vy = this.ball.vy;
+        
+        // Симулируем движение на 50 кадров вперед
+        for (let i = 0; i < 50; i++) {
+            this.trajectoryPoints.push({ x, y });
+            
+            x += vx;
+            y += vy;
+            vx *= this.billiardConfig.ballSpeed;
+            vy *= this.billiardConfig.ballSpeed;
+            
+            // Проверяем столкновения со стенками
+            if (x - this.ball.radius < 0) {
+                x = this.ball.radius;
+                vx = -vx * 0.8;
+            }
+            if (x + this.ball.radius > this.billiardConfig.tableWidth) {
+                x = this.billiardConfig.tableWidth - this.ball.radius;
+                vx = -vx * 0.8;
+            }
+            if (y - this.ball.radius < 0) {
+                y = this.ball.radius;
+                vy = -vy * 0.8;
+            }
+            if (y + this.ball.radius > this.billiardConfig.tableHeight) {
+                y = this.billiardConfig.tableHeight - this.ball.radius;
+                vy = -vy * 0.8;
+            }
+            
+            // Останавливаем если скорость слишком мала
+            if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) break;
+        }
+    }
+
+    // Проверка достижений бильярда
+    checkBilliardAchievements() {
+        // Первое попадание
+        if (!this.billiardAchievements.firstHit && this.billiardHits >= 1) {
+            this.billiardAchievements.firstHit = true;
+            this.showNotification('🏆 Первое попадание! Начинаем игру!', 'success');
+            this.gameData.tokens += 50; // Бонус за достижение
+        }
+        
+        // Комбо достижения
+        if (!this.billiardAchievements.combo3 && this.billiardCombo >= 3) {
+            this.billiardAchievements.combo3 = true;
+            this.showNotification('🔥 Комбо x3! Ты на огне!', 'success');
+            this.gameData.tokens += 100;
+        }
+        
+        if (!this.billiardAchievements.combo5 && this.billiardCombo >= 5) {
+            this.billiardAchievements.combo5 = true;
+            this.showNotification('⚡ Комбо x5! Невероятно!', 'success');
+            this.gameData.tokens += 200;
+        }
+        
+        if (!this.billiardAchievements.combo10 && this.billiardCombo >= 10) {
+            this.billiardAchievements.combo10 = true;
+            this.showNotification('🚀 Комбо x10! Ты легенда!', 'success');
+            this.gameData.tokens += 500;
+        }
+        
+        // Достижения по очкам
+        if (!this.billiardAchievements.score1000 && this.billiardScore >= 1000) {
+            this.billiardAchievements.score1000 = true;
+            this.showNotification('💰 1000 очков! Богач!', 'success');
+            this.gameData.tokens += 300;
+        }
+        
+        if (!this.billiardAchievements.score5000 && this.billiardScore >= 5000) {
+            this.billiardAchievements.score5000 = true;
+            this.showNotification('💎 5000 очков! Миллионер!', 'success');
+            this.gameData.tokens += 1000;
+        }
+        
+        // Достижения по попаданиям
+        if (!this.billiardAchievements.hits10 && this.billiardHits >= 10) {
+            this.billiardAchievements.hits10 = true;
+            this.showNotification('🎯 10 попаданий! Снайпер!', 'success');
+            this.gameData.tokens += 150;
+        }
+        
+        if (!this.billiardAchievements.hits50 && this.billiardHits >= 50) {
+            this.billiardAchievements.hits50 = true;
+            this.showNotification('🎖️ 50 попаданий! Мастер!', 'success');
+            this.gameData.tokens += 750;
+        }
+        
+        this.updateDisplay();
     }
 
     // Перемещение лузы в случайное положение
@@ -3063,6 +3304,29 @@ class AnonFarm {
         console.log(`🎯 Луза перемещена в позицию: (${Math.round(randomX)}, ${Math.round(randomY)})`);
     }
 
+    // Анимация перемещения лузы
+    animatePocketMove() {
+        // Сначала показываем эффект исчезновения
+        this.billiardConfig.pockets[0].alpha = 0.3;
+        
+        setTimeout(() => {
+            // Перемещаем лузу
+            this.movePocketToRandomPosition();
+            
+            // Показываем эффект появления
+            this.billiardConfig.pockets[0].alpha = 1;
+            
+            // Создаем эффект телепортации
+            if (this.billiardCanvas) {
+                const rect = this.billiardCanvas.getBoundingClientRect();
+                const pocket = this.billiardConfig.pockets[0];
+                const x = rect.left + pocket.x;
+                const y = rect.top + pocket.y;
+                this.particleSystem.createClickParticles(x, y, 8);
+            }
+        }, 200);
+    }
+
     // Отрисовка бильярдного стола
     drawBilliardTable() {
         const ctx = this.billiardCtx;
@@ -3077,18 +3341,32 @@ class AnonFarm {
         ctx.fillRect(0, 0, width, height);
 
         // Рисуем лузы
-        ctx.fillStyle = '#000000';
         this.billiardConfig.pockets.forEach(pocket => {
+            const alpha = pocket.alpha !== undefined ? pocket.alpha : 1;
+            
+            // Основная луза
+            ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
             ctx.beginPath();
             ctx.arc(pocket.x, pocket.y, this.billiardConfig.pocketRadius, 0, Math.PI * 2);
             ctx.fill();
             
             // Добавляем блик на лузе
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.3})`;
             ctx.beginPath();
             ctx.arc(pocket.x - 5, pocket.y - 5, this.billiardConfig.pocketRadius / 3, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#000000';
+            
+            // Добавляем свечение для активной лузы
+            if (alpha === 1) {
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 10;
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha * 0.5})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(pocket.x, pocket.y, this.billiardConfig.pocketRadius + 2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
         });
 
         // Рисуем границы стола
@@ -3153,6 +3431,26 @@ class AnonFarm {
         ctx.stroke();
     }
 
+    // Отрисовка траектории
+    drawTrajectory() {
+        if (!this.showTrajectory || this.trajectoryPoints.length < 2) return;
+        
+        const ctx = this.billiardCtx;
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        
+        ctx.beginPath();
+        ctx.moveTo(this.trajectoryPoints[0].x, this.trajectoryPoints[0].y);
+        
+        for (let i = 1; i < this.trajectoryPoints.length; i++) {
+            ctx.lineTo(this.trajectoryPoints[i].x, this.trajectoryPoints[i].y);
+        }
+        
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
     // Обновление отображения бильярда
     updateBilliardDisplay() {
         const scoreElement = document.getElementById('billiardScore');
@@ -3160,6 +3458,17 @@ class AnonFarm {
         
         if (scoreElement) scoreElement.textContent = this.billiardScore;
         if (hitsElement) hitsElement.textContent = this.billiardHits;
+        
+        // Обновляем комбо отображение
+        const comboElement = document.getElementById('billiardCombo');
+        if (comboElement) {
+            if (this.billiardCombo > 1) {
+                comboElement.textContent = `x${this.billiardCombo}`;
+                comboElement.style.display = 'block';
+            } else {
+                comboElement.style.display = 'none';
+            }
+        }
     }
 
     // Активация/деактивация бильярда при переключении страниц
