@@ -68,12 +68,15 @@ def load_stats_from_gist():
 
 def save_stats_to_gist():
     """Сохраняем статистику в GitHub Gist (встроенные библиотеки)"""
+    print(f"🔧 ВХОД В save_stats_to_gist() - НАЧАЛО ФУНКЦИИ")
     try:
         print(f"🔍 ДИАГНОСТИКА СОХРАНЕНИЯ:")
         print(f"   - GITHUB_TOKEN есть: {bool(GITHUB_TOKEN)}")
         print(f"   - Длина токена: {len(GITHUB_TOKEN) if GITHUB_TOKEN else 0}")
         print(f"   - Игроков в памяти: {len(players_stats)}")
         print(f"   - Данные игроков: {list(players_stats.keys()) if players_stats else 'Пусто'}")
+        print(f"   - GIST_ID: {GIST_ID}")
+        print(f"   - GIST_FILENAME: {GIST_FILENAME}")
         
         if not GITHUB_TOKEN:
             print("❌ ПРОБЛЕМА: GitHub токен НЕ найден в переменных окружения!")
@@ -270,9 +273,16 @@ class handler(BaseHTTPRequestHandler):
                 print(f"   - Стало игроков: {new_count}")
                 print(f"   - ID игрока: {player_id}")
                 
-                # Сохраняем в GitHub Gist (асинхронно)
+                # Сохраняем в GitHub Gist (асинхронно)  
                 print(f"🌐 ПЫТАЕМСЯ СОХРАНИТЬ В GITHUB GIST...")
-                save_stats_to_gist()
+                print(f"🔧 ПРИНУДИТЕЛЬНО ВЫЗЫВАЕМ save_stats_to_gist()...")
+                try:
+                    save_stats_to_gist()
+                    print(f"🔧 save_stats_to_gist() ЗАВЕРШЕНА")
+                except Exception as e:
+                    print(f"💥 ОШИБКА В save_stats_to_gist(): {e}")
+                    import traceback
+                    print(f"💥 ТРЕЙС: {traceback.format_exc()}")
                 
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
