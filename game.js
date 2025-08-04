@@ -1177,6 +1177,13 @@ class AnonFarm {
             const currentState = localStorage.getItem('shakeEnabled') !== 'false';
             const newState = !currentState;
             
+            console.log('🔧 SHAKE кнопка нажата:', {
+                currentState,
+                newState,
+                localStorage: localStorage.getItem('shakeEnabled'),
+                savedPermission: localStorage.getItem('shakePermission')
+            });
+            
             localStorage.setItem('shakeEnabled', newState.toString());
             this.updateShakeToggleState();
             
@@ -1186,6 +1193,8 @@ class AnonFarm {
                 this.initShakeDetection(true);
             } else {
                 this.showNotification('📱 Тряска телефона отключена!', 'info');
+                // Удаляем слушатель событий тряски при отключении
+                window.removeEventListener('devicemotion', this.handleMotion);
             }
         });
     }
@@ -1196,6 +1205,12 @@ class AnonFarm {
         if (!shakeToggle) return;
         
         const isEnabled = localStorage.getItem('shakeEnabled') !== 'false';
+        
+        console.log('🔧 Обновление состояния SHAKE кнопки:', {
+            isEnabled,
+            localStorage: localStorage.getItem('shakeEnabled'),
+            savedPermission: localStorage.getItem('shakePermission')
+        });
         
         if (isEnabled) {
             shakeToggle.classList.add('active');
@@ -1218,7 +1233,7 @@ class AnonFarm {
         const threshold = 15; // Чувствительность тряски
         const cooldown = 500; // Задержка между срабатываниями (мс)
 
-        const handleMotion = (event) => {
+        this.handleMotion = (event) => {
             const current = event.accelerationIncludingGravity;
             if (!current) return;
 
@@ -1264,7 +1279,7 @@ class AnonFarm {
             // iOS 13+ требует разрешения
             if (savedPermission === 'granted' && shakeEnabled) {
                 // Разрешение уже было дано и тряска включена, активируем сразу
-                window.addEventListener('devicemotion', handleMotion, false);
+                window.addEventListener('devicemotion', this.handleMotion, false);
                 console.log('📱 Разрешение на тряску уже получено!');
             } else if (shakeEnabled) {
                 // Запрашиваем разрешение
@@ -1272,7 +1287,7 @@ class AnonFarm {
                     DeviceMotionEvent.requestPermission()
                         .then(permissionState => {
                             if (permissionState === 'granted') {
-                                window.addEventListener('devicemotion', handleMotion, false);
+                                window.addEventListener('devicemotion', this.handleMotion, false);
                                 localStorage.setItem('shakePermission', 'granted');
                                 console.log('📱 Разрешение на тряску получено!');
                                 this.showNotification('📱 Тряска телефона активирована!', 'success');
@@ -1298,7 +1313,7 @@ class AnonFarm {
             }
         } else if (shakeEnabled) {
             // Android и другие устройства - работают сразу
-            window.addEventListener('devicemotion', handleMotion, false);
+            window.addEventListener('devicemotion', this.handleMotion, false);
             console.log('📱 Детекция тряски активирована!');
         }
     }
