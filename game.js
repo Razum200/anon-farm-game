@@ -676,7 +676,7 @@ class ParticleSystem {
     createClickParticles(x, y, amount) {
         const colors = ['#00ffff', '#ff00ff', '#ffff00'];
         
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 3; i++) { // Уменьшено с 8 до 3 частиц для производительности
             this.particles.push({
                 x: x + (Math.random() - 0.5) * 20,
                 y: y + (Math.random() - 0.5) * 20,
@@ -696,7 +696,7 @@ class ParticleSystem {
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
         
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 10; i++) { // Уменьшено с 30 до 10 частиц для производительности
             const angle = (i / 30) * Math.PI * 2;
             this.particles.push({
                 x: centerX,
@@ -715,7 +715,7 @@ class ParticleSystem {
     createUpgradeParticles(x, y) {
         const colors = ['#ff00ff', '#00ffff'];
         
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 5; i++) { // Уменьшено с 15 до 5 частиц для производительности
             this.particles.push({
                 x: x + (Math.random() - 0.5) * 30,
                 y: y + (Math.random() - 0.5) * 30,
@@ -736,19 +736,19 @@ class ParticleSystem {
         switch(type) {
             case 'plant':
                 colors = ['#00ff00', '#ffff00'];
-                count = 10;
+                count = 3; // Уменьшено с 10 до 3
                 break;
             case 'harvest':
                 colors = ['#ff00ff', '#00ffff', '#ffff00'];
-                count = 20;
+                count = 7; // Уменьшено с 20 до 7
                 break;
             case 'buy':
                 colors = ['#00ff00', '#ffffff'];
-                count = 12;
+                count = 4; // Уменьшено с 12 до 4
                 break;
             default:
                 colors = ['#00ffff'];
-                count = 8;
+                count = 3; // Уменьшено с 8 до 3
         }
         
         for (let i = 0; i < count; i++) {
@@ -1577,9 +1577,9 @@ class AnonFarm {
             x = window.innerWidth / 2;
             y = window.innerHeight / 2;
             
-            // Создаем больше частиц для сильной тряски
+            // Создаем больше частиц для сильной тряски (уменьшено в 3 раза для производительности)
             const shakeData = event.shakeData;
-            const particleCount = Math.min(shakeData.multiplier * 3, 30); // До 30 частиц для очень сильной тряски
+            const particleCount = Math.min(shakeData.multiplier * 1, 10); // До 10 частиц для очень сильной тряски
             
             // Создаем множественные взрывы частиц для сильной тряски
             for (let i = 0; i < particleCount; i++) {
