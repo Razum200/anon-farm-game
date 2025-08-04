@@ -1547,6 +1547,9 @@ class AnonFarm {
     }
 
     clickFarm(event) {
+        // Усиливаем глитч-эффект при клике
+        this.enhanceGlitchEffect();
+        
         // Определяем заработок в зависимости от типа события
         let earnings;
         if (event.type === 'shake' && event.shakeData) {
@@ -1729,6 +1732,40 @@ class AnonFarm {
                 effect.parentNode.removeChild(effect);
             }
         }, 1500);
+    }
+
+    enhanceGlitchEffect() {
+        const farmButton = document.getElementById('farmButton');
+        if (!farmButton) return;
+        
+        // Добавляем временный класс для усиленного глитча
+        farmButton.classList.add('glitch-intense');
+        
+        // Случайные параметры глитча
+        const randomHue = Math.random() * 360;
+        const randomRotate = (Math.random() - 0.5) * 20;
+        
+        // Устанавливаем CSS переменные для глитч-эффектов
+        farmButton.style.setProperty('--glitch-hue', `${randomHue}deg`);
+        farmButton.style.setProperty('--glitch-rotate', `${randomRotate}deg`);
+        
+        // Создаем случайные трансформации для шара
+        const ball = farmButton.querySelector('.billiard-ball');
+        if (ball) {
+            const randomScale = 0.8 + Math.random() * 0.4; // от 0.8 до 1.2
+            const randomRotateBall = (Math.random() - 0.5) * 30;
+            ball.style.transform = `scale(${randomScale}) rotate(${randomRotateBall}deg)`;
+        }
+        
+        // Убираем эффект через короткое время
+        setTimeout(() => {
+            farmButton.classList.remove('glitch-intense');
+            farmButton.style.removeProperty('--glitch-hue');
+            farmButton.style.removeProperty('--glitch-rotate');
+            if (ball) {
+                ball.style.transform = '';
+            }
+        }, 300);
     }
 
     showLevelUpEffect() {

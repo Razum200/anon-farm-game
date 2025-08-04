@@ -85,6 +85,34 @@
             animation: textFlicker 3s infinite;
         }
 
+        /* Специальная анимация для глитчующего шара */
+        .farm-button.text-flicker {
+            animation: cyberButtonPulse 3s ease-in-out infinite, glitchBall 2s infinite;
+        }
+
+        @keyframes glitchBall {
+            0%, 90%, 100% {
+                transform: scale(1) rotate(0deg);
+                text-shadow: 0 0 10px currentColor;
+            }
+            5% {
+                transform: scale(1.05) rotate(1deg);
+                text-shadow: 2px 0 10px #ff00ff, -2px 0 10px #00ffff;
+            }
+            10% {
+                transform: scale(0.95) rotate(-1deg);
+                text-shadow: -2px 0 10px #ffff00, 2px 0 10px #ff00ff;
+            }
+            15% {
+                transform: scale(1.02) rotate(0.5deg);
+                text-shadow: 0 0 10px currentColor;
+            }
+            85% {
+                transform: scale(1) rotate(0deg);
+                text-shadow: 0 0 10px currentColor;
+            }
+        }
+
         /* Эффект печатающегося текста */
         .typing-text {
             overflow: hidden;
@@ -336,21 +364,15 @@
         .farm-button {
             width: 150px;
             height: 150px;
-            border: 2px solid #00ffff;
+            border: none;
             border-radius: 50%;
-            background: 
-                radial-gradient(circle at center, rgba(0,255,255,0.2) 0%, rgba(0,0,0,0.8) 70%),
-                linear-gradient(45deg, #1a1a2e, #16213e);
+            background: transparent;
             color: #00ffff;
-            font-size: 1.2em;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 
-                0 0 20px rgba(0,255,255,0.5),
-                inset 0 0 20px rgba(0,255,255,0.1);
             margin-bottom: 20px;
-            animation: cyberButtonPulse 3s ease-in-out infinite;
+            animation: cyberButtonPulse 3s ease-in-out infinite, glitchBall 2s ease-in-out infinite;
             letter-spacing: 1px;
             /* Дополнительная защита от zoom для кнопки */
             touch-action: manipulation;
@@ -358,38 +380,244 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            /* Глитч-эффект для шара */
+            text-shadow: 0 0 10px currentColor;
+            position: relative;
+            overflow: visible;
         }
+
+        /* Стили для бильярдного шара */
+        .billiard-ball {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 30% 30%, #ffffff 0%, #ffffff 8%, transparent 8%),
+                radial-gradient(circle at 70% 70%, #ffffff 0%, #ffffff 8%, transparent 8%),
+                radial-gradient(circle at 50% 50%, #000000 0%, #000000 85%, #333333 85%, #333333 100%);
+            box-shadow: 
+                0 0 20px rgba(0,255,255,0.5),
+                inset 0 0 20px rgba(0,255,255,0.1),
+                0 0 30px rgba(0,0,0,0.8);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            animation: billiardGlow 3s ease-in-out infinite;
+        }
+
+        .ball-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: #ffffff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000000;
+            font-family: 'Arial Black', sans-serif;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+
+
 
         @keyframes cyberButtonPulse {
             0%, 100% { 
-                border-color: #00ffff;
-                box-shadow: 
-                    0 0 20px rgba(0,255,255,0.5),
-                    inset 0 0 20px rgba(0,255,255,0.1);
+                transform: scale(1) rotate(0deg);
+            }
+            25% { 
+                transform: scale(1.02) rotate(2deg);
             }
             50% { 
-                border-color: #ff00ff;
+                transform: scale(0.98) rotate(-1deg);
+            }
+            75% { 
+                transform: scale(1.01) rotate(1deg);
+            }
+        }
+
+        /* Анимация глитч-эффекта для бильярдного шара */
+        @keyframes glitchBall {
+            0%, 90%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            5% {
+                transform: translate(-2px, 1px) rotate(-1deg);
+            }
+            10% {
+                transform: translate(2px, -1px) rotate(1deg);
+            }
+            15% {
+                transform: translate(-1px, 2px) rotate(-0.5deg);
+            }
+            20% {
+                transform: translate(1px, -2px) rotate(0.5deg);
+            }
+            85% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+        }
+
+        /* Анимация для бильярдного шара */
+        @keyframes billiardGlow {
+            0%, 100% {
+                box-shadow: 
+                    0 0 20px rgba(0,255,255,0.5),
+                    inset 0 0 20px rgba(0,255,255,0.1),
+                    0 0 30px rgba(0,0,0,0.8);
+            }
+            25% {
                 box-shadow: 
                     0 0 30px rgba(255,0,255,0.7),
-                    inset 0 0 30px rgba(255,0,255,0.2);
+                    inset 0 0 30px rgba(255,0,255,0.2),
+                    0 0 40px rgba(0,0,0,0.9);
+            }
+            50% {
+                box-shadow: 
+                    0 0 25px rgba(255,255,0,0.6),
+                    inset 0 0 25px rgba(255,255,0,0.15),
+                    0 0 35px rgba(0,0,0,0.8);
+            }
+            75% {
+                box-shadow: 
+                    0 0 35px rgba(255,0,255,0.8),
+                    inset 0 0 35px rgba(255,0,255,0.25),
+                    0 0 45px rgba(0,0,0,0.9);
+            }
+        }
+
+        @keyframes glitchText {
+            0%, 100% {
+                opacity: 0;
+                transform: translate(0, 0);
+            }
+            10% {
+                opacity: 0.8;
+                transform: translate(-1px, 1px);
+            }
+            20% {
+                opacity: 0;
+                transform: translate(1px, -1px);
+            }
+            30% {
+                opacity: 0.6;
+                transform: translate(-1px, -1px);
+            }
+            40% {
+                opacity: 0;
+                transform: translate(1px, 1px);
+            }
+            50% {
+                opacity: 0.4;
+                transform: translate(0, 0);
+            }
+            60% {
+                opacity: 0;
+                transform: translate(-2px, 0);
+            }
+            70% {
+                opacity: 0.3;
+                transform: translate(2px, 0);
+            }
+            80% {
+                opacity: 0;
+                transform: translate(0, 0);
+            }
+        }
+
+        @keyframes numberGlitch {
+            0%, 100% {
+                transform: scale(1) rotate(0deg);
+                color: #000000;
+            }
+            10% {
+                transform: scale(1.1) rotate(2deg);
+                color: #ff0000;
+            }
+            20% {
+                transform: scale(0.9) rotate(-2deg);
+                color: #00ff00;
+            }
+            30% {
+                transform: scale(1.05) rotate(1deg);
+                color: #0000ff;
+            }
+            40% {
+                transform: scale(0.95) rotate(-1deg);
+                color: #ffff00;
+            }
+            50% {
+                transform: scale(1.15) rotate(3deg);
+                color: #ff00ff;
+            }
+            60% {
+                transform: scale(0.85) rotate(-3deg);
+                color: #00ffff;
+            }
+            70% {
+                transform: scale(1.2) rotate(4deg);
+                color: #ffffff;
+            }
+            80% {
+                transform: scale(0.8) rotate(-4deg);
+                color: #000000;
+            }
+            90% {
+                transform: scale(1.1) rotate(1deg);
+                color: #ff0000;
             }
         }
 
         .farm-button:hover {
             transform: scale(1.05);
-            border-color: #ff00ff;
-            box-shadow: 
-                0 0 40px rgba(255,0,255,0.8),
-                inset 0 0 30px rgba(255,0,255,0.3);
-            color: #ff00ff;
+            animation: cyberButtonPulse 1.5s ease-in-out infinite, glitchBall 0.8s ease-in-out infinite;
         }
+
+        .farm-button:hover .billiard-ball {
+            animation: billiardGlow 1s ease-in-out infinite;
+            transform: scale(1.1);
+        }
+
+
 
         .farm-button:active {
             transform: scale(0.95);
-            box-shadow: 
-                0 0 15px rgba(0,255,255,0.9),
-                inset 0 0 15px rgba(0,255,255,0.4);
+            animation: cyberButtonPulse 0.5s ease-in-out infinite, glitchBall 0.3s ease-in-out infinite;
         }
+
+        .farm-button:active .billiard-ball {
+            animation: billiardGlow 0.2s ease-in-out infinite;
+            transform: scale(0.9);
+        }
+
+
+
+        /* Усиленный глитч-эффект при клике */
+        .farm-button.glitch-intense {
+            animation: glitchBall 0.1s ease-in-out infinite, cyberButtonPulse 0.2s ease-in-out infinite !important;
+            transform: scale(1.15) !important;
+            z-index: 1000 !important;
+        }
+
+        .farm-button.glitch-intense .billiard-ball {
+            animation: billiardGlow 0.05s ease-in-out infinite !important;
+            transform: scale(1.2) !important;
+            filter: hue-rotate(var(--glitch-hue, 0deg)) brightness(1.5) !important;
+        }
+
+        .farm-button.glitch-intense .ball-number {
+            animation: numberGlitch 0.1s ease-in-out infinite !important;
+            transform: scale(1.1) rotate(var(--glitch-rotate, 0deg)) !important;
+        }
+
+
+
+
 
         .upgrades {
             background: rgba(255,255,255,0.1);
@@ -1594,8 +1822,10 @@
             </div>
 
             <div class="farm-area">
-                <button class="farm-button text-flicker" id="farmButton" data-text="🚀 ФЕРМИТЬ">
-                    🚀<br>ФЕРМИТЬ
+                <button class="farm-button text-flicker" id="farmButton" data-text="🎱">
+                    <div class="billiard-ball">
+                        <div class="ball-number">8</div>
+                    </div>
                 </button>
                 <div>Кликай для добычи $ANON!</div>
             </div>
