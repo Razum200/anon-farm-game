@@ -1189,10 +1189,12 @@ class AnonFarm {
             
             if (newState) {
                 this.showNotification('📱 Тряска телефона включена!', 'success');
+                console.log('🔧 Включаем тряску, вызываем initShakeDetection(true)');
                 // Переинициализируем детекцию тряски с возможностью запроса разрешения
                 this.initShakeDetection(true);
             } else {
                 this.showNotification('📱 Тряска телефона отключена!', 'info');
+                console.log('🔧 Отключаем тряску, удаляем event listener');
                 // Удаляем слушатель событий тряски при отключении
                 window.removeEventListener('devicemotion', this.handleMotion);
             }
@@ -1223,6 +1225,12 @@ class AnonFarm {
 
     // Инициализация детекции тряски телефона
     initShakeDetection(forceRequest = false) {
+        console.log('🔧 initShakeDetection вызвана:', {
+            forceRequest,
+            savedPermission: localStorage.getItem('shakePermission'),
+            shakeEnabled: localStorage.getItem('shakeEnabled')
+        });
+        
         if (!window.DeviceMotionEvent) {
             console.log('📱 DeviceMotion не поддерживается на этом устройстве');
             return;
@@ -1302,12 +1310,15 @@ class AnonFarm {
 
                 // Если принудительный запрос - всегда запрашиваем
                 if (forceRequest) {
+                    console.log('🔧 Принудительный запрос разрешения тряски');
                     requestPermission();
                 } else if (savedPermission !== 'denied') {
                     // Если не было отказа - запрашиваем в первый раз
+                    console.log('🔧 Первый запрос разрешения тряски');
                     requestPermission();
                 } else {
                     // Если разрешение было отклонено, показываем сообщение
+                    console.log('🔧 Разрешение было отклонено, показываем подсказку');
                     this.showNotification('📱 Нажмите SHAKE еще раз для запроса разрешения', 'info');
                 }
             }
