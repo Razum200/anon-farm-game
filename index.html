@@ -756,6 +756,92 @@
             }
         }
 
+        /* Анимация для киберпанк текста тряски */
+        @keyframes shakeTextAnim {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotate(0deg);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1.2) rotate(5deg);
+            }
+            80% {
+                opacity: 1;
+                transform: scale(1) rotate(-3deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.8) rotate(0deg) translateY(-50px);
+            }
+        }
+
+        /* Стили для кнопки переключателя тряски */
+        .shake-toggle-button {
+            background: 
+                linear-gradient(45deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1)),
+                rgba(26,26,46,0.8);
+            border: 1px solid rgba(0,255,255,0.4);
+            border-radius: 15px;
+            padding: 12px 20px;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #00ffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,255,255,0.5);
+            box-shadow: 
+                0 0 10px rgba(0,255,255,0.2),
+                inset 0 0 10px rgba(0,255,255,0.05);
+            width: 200px;
+            justify-content: center;
+        }
+
+        .shake-toggle-button:hover {
+            border-color: rgba(255,0,255,0.6);
+            box-shadow: 
+                0 0 20px rgba(255,0,255,0.4),
+                inset 0 0 15px rgba(255,0,255,0.1);
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255,0,255,0.8);
+        }
+
+        .shake-toggle-button.active {
+            background: 
+                linear-gradient(45deg, rgba(0,255,0,0.2), rgba(255,255,0,0.2)),
+                rgba(0,0,0,0.8);
+            border-color: #00ff00;
+            color: #00ff00;
+            text-shadow: 0 0 15px rgba(0,255,0,1);
+            box-shadow: 
+                0 0 25px rgba(0,255,0,0.5),
+                inset 0 0 20px rgba(0,255,0,0.2);
+        }
+
+        .shake-toggle-button.disabled {
+            background: 
+                linear-gradient(45deg, rgba(255,0,0,0.1), rgba(128,128,128,0.1)),
+                rgba(26,26,46,0.6);
+            border-color: rgba(255,0,0,0.4);
+            color: rgba(255,0,0,0.7);
+            text-shadow: none;
+            box-shadow: 
+                0 0 10px rgba(255,0,0,0.2),
+                inset 0 0 10px rgba(255,0,0,0.05);
+        }
+
+        .shake-icon {
+            font-size: 1.2em;
+        }
+
+        .shake-text {
+            font-size: 0.9em;
+        }
+
         /* Стили для кибер рейтинга */
         .leaderboard-tabs {
             display: flex;
@@ -1651,6 +1737,6 @@
 
     <!-- Подключение Telegram Web Apps API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=2025080415"></script>
+    <script src="game.js?v=2025080416"></script>
 </body>
 </html>

@@ -1018,6 +1018,9 @@ class AnonFarm {
         document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
         document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
         
+        // Инициализируем кнопку переключателя тряски
+        this.initShakeToggle();
+        
         // Инициализируем тряску телефона для фермы
         this.initShakeDetection();
         
@@ -1105,6 +1108,104 @@ class AnonFarm {
         }, 1500);
     }
 
+    // Киберпанк текст тряски
+    showShakeText() {
+        const texts = ['SHAKE', 'shake', 'ТРЯСИ', 'SHAKE!', 'shake!', 'ТРЯСИ!'];
+        const colors = ['#00ffff', '#ff00ff', '#ffff00', '#00ff00', '#ff0080', '#0080ff'];
+        
+        // Создаем 2-3 случайных текста
+        const count = Math.floor(Math.random() * 2) + 2;
+        
+        for (let i = 0; i < count; i++) {
+            const text = texts[Math.floor(Math.random() * texts.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            const shakeText = document.createElement('div');
+            shakeText.className = 'shake-text';
+            shakeText.textContent = text;
+            
+            // Случайная позиция на экране
+            const x = Math.random() * (window.innerWidth - 200) + 100;
+            const y = Math.random() * (window.innerHeight - 100) + 50;
+            
+            shakeText.style.cssText = `
+                position: fixed;
+                top: ${y}px;
+                left: ${x}px;
+                color: ${color};
+                font-size: ${Math.random() * 20 + 20}px;
+                font-weight: bold;
+                font-family: 'Courier New', monospace;
+                text-shadow: 0 0 15px ${color}, 0 0 30px ${color};
+                z-index: 9999;
+                pointer-events: none;
+                opacity: 0;
+                transform: scale(0.5) rotate(${Math.random() * 20 - 10}deg);
+                animation: shakeTextAnim 2s ease-out forwards;
+            `;
+            
+            document.body.appendChild(shakeText);
+            
+            setTimeout(() => {
+                if (shakeText.parentNode) {
+                    shakeText.remove();
+                }
+            }, 2000);
+        }
+    }
+
+    // Инициализация кнопки переключателя тряски
+    initShakeToggle() {
+        // Создаем кнопку переключателя
+        const shakeToggle = document.createElement('button');
+        shakeToggle.id = 'shakeToggle';
+        shakeToggle.className = 'shake-toggle-button';
+        shakeToggle.innerHTML = `
+            <span class="shake-icon">📱</span>
+            <span class="shake-text">SHAKE</span>
+        `;
+        
+        // Добавляем кнопку после кнопки фермы
+        const farmButton = document.getElementById('farmButton');
+        farmButton.parentNode.insertBefore(shakeToggle, farmButton.nextSibling);
+        
+        // Обновляем состояние кнопки
+        this.updateShakeToggleState();
+        
+        // Обработчик клика
+        shakeToggle.addEventListener('click', () => {
+            const currentState = localStorage.getItem('shakeEnabled') !== 'false';
+            const newState = !currentState;
+            
+            localStorage.setItem('shakeEnabled', newState.toString());
+            this.updateShakeToggleState();
+            
+            if (newState) {
+                this.showNotification('📱 Тряска телефона включена!', 'success');
+                // Переинициализируем детекцию тряски
+                this.initShakeDetection();
+            } else {
+                this.showNotification('📱 Тряска телефона отключена!', 'info');
+            }
+        });
+    }
+    
+    // Обновление состояния кнопки переключателя
+    updateShakeToggleState() {
+        const shakeToggle = document.getElementById('shakeToggle');
+        if (!shakeToggle) return;
+        
+        const isEnabled = localStorage.getItem('shakeEnabled') !== 'false';
+        
+        if (isEnabled) {
+            shakeToggle.classList.add('active');
+            shakeToggle.classList.remove('disabled');
+        } else {
+            shakeToggle.classList.remove('active');
+            shakeToggle.classList.add('disabled');
+        }
+    }
+
     // Инициализация детекции тряски телефона
     initShakeDetection() {
         if (!window.DeviceMotionEvent) {
@@ -1116,7 +1217,6 @@ class AnonFarm {
         let lastX = 0, lastY = 0, lastZ = 0;
         const threshold = 15; // Чувствительность тряски
         const cooldown = 500; // Задержка между срабатываниями (мс)
-        let shakeEnabled = false; // Флаг активации тряски
 
         const handleMotion = (event) => {
             const current = event.accelerationIncludingGravity;
@@ -1142,8 +1242,8 @@ class AnonFarm {
                 
                 this.clickFarm(virtualEvent);
                 
-                // Показываем уведомление о тряске
-                this.showNotification('📱 Тряска телефона = ферма!', 'info');
+                // Показываем киберпанк эффект тряски
+                this.showShakeText();
                 
                 // Вибрация в Telegram
                 if (this.tg && this.tg.HapticFeedback) {
@@ -1156,24 +1256,23 @@ class AnonFarm {
             lastZ = current.z;
         };
 
-        // Проверяем сохраненное разрешение
+        // Проверяем сохраненное разрешение и настройку
         const savedPermission = localStorage.getItem('shakePermission');
+        const shakeEnabled = localStorage.getItem('shakeEnabled') !== 'false'; // По умолчанию включено
         
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
             // iOS 13+ требует разрешения
-            if (savedPermission === 'granted') {
-                // Разрешение уже было дано, активируем сразу
+            if (savedPermission === 'granted' && shakeEnabled) {
+                // Разрешение уже было дано и тряска включена, активируем сразу
                 window.addEventListener('devicemotion', handleMotion, false);
-                shakeEnabled = true;
                 console.log('📱 Разрешение на тряску уже получено!');
-            } else {
+            } else if (shakeEnabled) {
                 // Запрашиваем разрешение только один раз
                 const requestPermission = () => {
                     DeviceMotionEvent.requestPermission()
                         .then(permissionState => {
                             if (permissionState === 'granted') {
                                 window.addEventListener('devicemotion', handleMotion, false);
-                                shakeEnabled = true;
                                 localStorage.setItem('shakePermission', 'granted');
                                 console.log('📱 Разрешение на тряску получено!');
                                 this.showNotification('📱 Тряска телефона активирована!', 'success');
@@ -1186,14 +1285,11 @@ class AnonFarm {
                 };
 
                 // Запрашиваем разрешение при первом клике
-                if (!shakeEnabled) {
-                    document.addEventListener('click', requestPermission, { once: true });
-                }
+                document.addEventListener('click', requestPermission, { once: true });
             }
-        } else {
+        } else if (shakeEnabled) {
             // Android и другие устройства - работают сразу
             window.addEventListener('devicemotion', handleMotion, false);
-            shakeEnabled = true;
             console.log('📱 Детекция тряски активирована!');
         }
     }
