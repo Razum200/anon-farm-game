@@ -32,7 +32,13 @@ class SoundSystem {
             error: this.createErrorSound(),
             plant: this.createPlantSound(),
             harvest: this.createHarvestSound(),
-            buy: this.createBuySound()
+            buy: this.createBuySound(),
+            autoFarm: this.createAutoFarmSound(),
+            offline: this.createOfflineSound(),
+            notification: this.createNotificationSound(),
+            navigation: this.createNavigationSound(),
+            success: this.createSuccessSound(),
+            coin: this.createCoinSound()
         };
     }
     
@@ -196,6 +202,151 @@ class SoundSystem {
         };
     }
     
+    createAutoFarmSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Мягкий пульсирующий звук автофермы
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(220, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(330, this.audioContext.currentTime + 0.5);
+            oscillator.frequency.exponentialRampToValueAtTime(220, this.audioContext.currentTime + 1);
+            
+            gainNode.gain.setValueAtTime(0.05, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.02, this.audioContext.currentTime + 1);
+            
+            oscillator.type = 'sine';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 1);
+        };
+    }
+    
+    createOfflineSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Звук накопления офлайн токенов
+            const frequencies = [261, 329, 392, 523]; // C4, E4, G4, C5
+            
+            frequencies.forEach((freq, index) => {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime + index * 0.1);
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime + index * 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + index * 0.1 + 0.3);
+                
+                oscillator.type = 'sine';
+                oscillator.start(this.audioContext.currentTime + index * 0.1);
+                oscillator.stop(this.audioContext.currentTime + index * 0.1 + 0.3);
+            });
+        };
+    }
+    
+    createNotificationSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Мягкий уведомляющий звук
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1108, this.audioContext.currentTime + 0.1);
+            oscillator.frequency.exponentialRampToValueAtTime(880, this.audioContext.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.08, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.25);
+            
+            oscillator.type = 'triangle';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.25);
+        };
+    }
+    
+    createNavigationSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Быстрый клик навигации
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(1000, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, this.audioContext.currentTime + 0.05);
+            
+            gainNode.gain.setValueAtTime(0.06, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.08);
+            
+            oscillator.type = 'square';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.08);
+        };
+    }
+    
+    createSuccessSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Звук успеха - восходящий аккорд
+            const frequencies = [523, 659, 784, 1047]; // C5, E5, G5, C6
+            
+            frequencies.forEach((freq, index) => {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime + index * 0.08);
+                gainNode.gain.setValueAtTime(0.12, this.audioContext.currentTime + index * 0.08);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + index * 0.08 + 0.4);
+                
+                oscillator.type = 'triangle';
+                oscillator.start(this.audioContext.currentTime + index * 0.08);
+                oscillator.stop(this.audioContext.currentTime + index * 0.08 + 0.4);
+            });
+        };
+    }
+    
+    createCoinSound() {
+        return () => {
+            if (!this.audioContext) return;
+            
+            // Звук получения монеты
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(1318, this.audioContext.currentTime); // E6
+            oscillator.frequency.exponentialRampToValueAtTime(659, this.audioContext.currentTime + 0.1); // E5
+            oscillator.frequency.exponentialRampToValueAtTime(1318, this.audioContext.currentTime + 0.15);
+            
+            gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+            
+            oscillator.type = 'sine';
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.2);
+        };
+    }
+    
     play(soundName) {
         if (!this.enabled || !this.sounds[soundName]) return;
         
@@ -214,6 +365,147 @@ class SoundSystem {
     toggle() {
         this.enabled = !this.enabled;
         return this.enabled;
+    }
+}
+
+// Киберпанк система уведомлений
+class CyberNotificationSystem {
+    constructor() {
+        this.notifications = [];
+        this.maxNotifications = 3;
+        this.createContainer();
+    }
+    
+    createContainer() {
+        this.container = document.createElement('div');
+        this.container.className = 'cyber-notifications-container';
+        this.container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+            max-width: 300px;
+        `;
+        document.body.appendChild(this.container);
+    }
+    
+    show(message, type = 'info', duration = 4000) {
+        const notification = this.createNotification(message, type);
+        this.container.appendChild(notification);
+        this.notifications.push(notification);
+        
+        // Удаляем старые уведомления если их слишком много
+        while (this.notifications.length > this.maxNotifications) {
+            const oldNotification = this.notifications.shift();
+            if (oldNotification && oldNotification.parentNode) {
+                oldNotification.remove();
+            }
+        }
+        
+        // Анимация появления
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        }, 10);
+        
+        // Автоудаление
+        setTimeout(() => {
+            this.remove(notification);
+        }, duration);
+        
+        return notification;
+    }
+    
+    createNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `cyber-notification cyber-notification-${type}`;
+        
+        const colors = {
+            info: { border: '#00ffff', bg: 'rgba(0,255,255,0.1)', text: '#00ffff' },
+            success: { border: '#00ff00', bg: 'rgba(0,255,0,0.1)', text: '#00ff00' },
+            error: { border: '#ff0040', bg: 'rgba(255,0,64,0.1)', text: '#ff0040' },
+            warning: { border: '#ffff00', bg: 'rgba(255,255,0,0.1)', text: '#ffff00' },
+            offline: { border: '#ff00ff', bg: 'rgba(255,0,255,0.1)', text: '#ff00ff' }
+        };
+        
+        const color = colors[type] || colors.info;
+        
+        notification.style.cssText = `
+            background: linear-gradient(135deg, ${color.bg}, rgba(26,26,46,0.9));
+            border: 1px solid ${color.border};
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            color: ${color.text};
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            box-shadow: 
+                0 0 20px ${color.border}40,
+                inset 0 0 20px ${color.border}10;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            animation: cyberNotificationPulse 2s ease-in-out infinite alternate;
+        `;
+        
+        // Добавляем иконку
+        const icons = {
+            info: '💻',
+            success: '✅', 
+            error: '❌',
+            warning: '⚠️',
+            offline: '💰'
+        };
+        
+        const icon = icons[type] || icons.info;
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px;">${icon}</span>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        // Добавляем глитч эффект
+        const glitchOverlay = document.createElement('div');
+        glitchOverlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, ${color.border}20 50%, transparent 100%);
+            animation: cyberNotificationScan 3s linear infinite;
+            pointer-events: none;
+        `;
+        notification.appendChild(glitchOverlay);
+        
+        return notification;
+    }
+    
+    remove(notification) {
+        if (!notification || !notification.parentNode) return;
+        
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+            const index = this.notifications.indexOf(notification);
+            if (index > -1) {
+                this.notifications.splice(index, 1);
+            }
+        }, 300);
+    }
+    
+    clear() {
+        this.notifications.forEach(notification => this.remove(notification));
+        this.notifications = [];
     }
 }
 
@@ -555,6 +847,9 @@ class AnonFarm {
         
         // Инициализируем систему печатающегося текста
         this.typingSystem = new TypingSystem();
+        
+        // Инициализируем киберпанк систему уведомлений
+        this.cyberNotifications = new CyberNotificationSystem();
     }
 
     initTelegram() {
@@ -650,6 +945,8 @@ class AnonFarm {
             // Показываем уведомление об офлайн заработке
             if (offlineEarnings > 0) {
                 this.showNotification(`Добыто офлайн: ${this.formatNumber(offlineEarnings)} $ANON!`);
+                // Дополнительный звук автофермы для атмосферы
+                setTimeout(() => this.soundSystem.play('autoFarm'), 500);
             }
         }
     }
@@ -760,8 +1057,9 @@ class AnonFarm {
             this.saveToLocalLeaderboard();
         }
         
-        // Звуковой эффект клика
+        // Звуковые эффекты
         this.soundSystem.play('click');
+        this.soundSystem.play('coin');
         
         // Вибрация в Telegram
         if (this.tg && this.tg.HapticFeedback) {
@@ -901,13 +1199,44 @@ class AnonFarm {
         this.showNotification(`🎉 Поздравляем! Достигнут ${this.gameData.level} уровень!`);
     }
 
-    showNotification(message) {
-        // Показываем уведомление через Telegram
-        if (this.tg && this.tg.showAlert) {
-            this.tg.showAlert(message);
-        } else {
-            // Fallback на обычный alert
-            alert(message);
+    showNotification(message, type = 'info', playSound = true) {
+        // Определяем тип уведомления по содержимому
+        if (!type || type === 'auto') {
+            if (message.includes('Поздравляем') || message.includes('уровень') || message.includes('🎉')) {
+                type = 'success';
+            } else if (message.includes('Недостаточно') || message.includes('❌')) {
+                type = 'error';
+            } else if (message.includes('офлайн') || message.includes('💰')) {
+                type = 'offline';
+            } else if (message.includes('Куплено') || message.includes('Улучшение')) {
+                type = 'success';
+            } else if (message.includes('Посажено') || message.includes('Урожай')) {
+                type = 'success';
+            } else {
+                type = 'info';
+            }
+        }
+        
+        // Показываем киберпанк уведомление
+        this.cyberNotifications.show(message, type);
+        
+        // Воспроизводим звук
+        if (playSound) {
+            const soundMap = {
+                'success': 'success',
+                'error': 'error', 
+                'offline': 'offline',
+                'info': 'notification',
+                'warning': 'notification'
+            };
+            
+            const soundName = soundMap[type] || 'notification';
+            this.soundSystem.play(soundName);
+        }
+        
+        // Fallback для Telegram если нужно (для важных уведомлений)
+        if (type === 'error' && this.tg && this.tg.HapticFeedback) {
+            this.tg.HapticFeedback.impactOccurred('medium');
         }
     }
 
@@ -1457,6 +1786,7 @@ class AnonFarm {
             
             if (pageMessages[pageName]) {
                 this.typingSystem.createTerminalMessage(pageMessages[pageName]);
+                this.soundSystem.play('navigation');
             }
             
             // Обновляем данные при переходе на страницы
