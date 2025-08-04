@@ -2928,7 +2928,7 @@ class AnonFarm {
 
             // Наклон телефона влияет на скорость шара
             const tiltX = acceleration.x / 9.8; // Нормализуем к g
-            const tiltY = acceleration.y / 9.8;
+            const tiltY = -acceleration.y / 9.8; // Инвертируем Y ось
 
             // Применяем наклон только если он достаточно сильный
             if (Math.abs(tiltX) > threshold || Math.abs(tiltY) > threshold) {
