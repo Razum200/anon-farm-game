@@ -1216,10 +1216,23 @@ class AnonFarm {
         // Обработчик клика для кнопки настроек тряски
         shakeSettingsBtn.addEventListener('click', () => {
             console.log('🔧 Кнопка настроек тряски нажата - запрашиваем разрешение');
-            this.showNotification('🔧 Запрашиваем разрешение на тряску...', 'info');
             
-            // Принудительно запрашиваем разрешение независимо от состояния
-            this.initShakeDetection(true);
+            // Проверяем, поддерживается ли DeviceMotion
+            if (!window.DeviceMotionEvent) {
+                this.showNotification('📱 Ваше устройство не поддерживает тряску телефона', 'error');
+                return;
+            }
+            
+            // Проверяем, нужны ли разрешения
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                this.showNotification('🔧 Запрашиваем разрешение на тряску...', 'info');
+                // Принудительно запрашиваем разрешение независимо от состояния
+                this.initShakeDetection(true);
+            } else {
+                // Android и другие устройства - работают сразу
+                this.showNotification('📱 Тряска телефона активирована!', 'success');
+                this.initShakeDetection(true);
+            }
         });
     }
     
@@ -1243,6 +1256,49 @@ class AnonFarm {
             shakeToggle.classList.remove('active');
             shakeToggle.classList.add('disabled');
         }
+    }
+
+    // Показ инструкции для настройки разрешений на iPhone
+    showIPhonePermissionInstructions() {
+        // Проверяем, это iPhone или iPad
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        
+        if (isIOS) {
+            setTimeout(() => {
+                this.showNotification('📱 Для iPhone: Настройки → Конфиденциальность → Движение и фитнес → Включить для браузера', 'info');
+            }, 2000);
+            
+            // Показываем подробную инструкцию
+            this.showDetailedIPhoneInstructions();
+        }
+    }
+    
+    // Показ подробной инструкции для iPhone
+    showDetailedIPhoneInstructions() {
+        const instructions = document.createElement('div');
+        instructions.className = 'iphone-instructions';
+        instructions.innerHTML = `
+            <h4>📱 Настройка тряски на iPhone</h4>
+            <ol>
+                <li>Откройте <strong>Настройки</strong></li>
+                <li>Найдите <strong>Конфиденциальность</strong></li>
+                <li>Выберите <strong>Движение и фитнес</strong></li>
+                <li>Найдите ваш браузер (Safari/Chrome)</li>
+                <li>Включите переключатель</li>
+                <li>Вернитесь в игру и нажмите 🔧</li>
+            </ol>
+            <button onclick="this.parentElement.remove()" style="background: rgba(255,0,255,0.2); border: 1px solid #ff00ff; color: #ff00ff; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Понятно</button>
+        `;
+        
+        // Добавляем инструкцию на страницу
+        document.body.appendChild(instructions);
+        
+        // Удаляем через 10 секунд
+        setTimeout(() => {
+            if (instructions.parentNode) {
+                instructions.remove();
+            }
+        }, 10000);
     }
 
     // Инициализация детекции тряски телефона
@@ -1325,6 +1381,9 @@ class AnonFarm {
                                 localStorage.setItem('shakePermission', 'denied');
                                 console.log('📱 Разрешение на тряску отклонено');
                                 this.showNotification('📱 Разрешение отклонено. Нажмите SHAKE еще раз для повторного запроса.', 'info');
+                                
+                                // Показываем инструкцию для iPhone
+                                this.showIPhonePermissionInstructions();
                             }
                         })
                         .catch(console.error);
@@ -1342,6 +1401,9 @@ class AnonFarm {
                     // Если разрешение было отклонено, показываем сообщение
                     console.log('🔧 Разрешение было отклонено, показываем подсказку');
                     this.showNotification('📱 Нажмите SHAKE еще раз для запроса разрешения', 'info');
+                    
+                    // Показываем инструкцию для iPhone
+                    this.showIPhonePermissionInstructions();
                 }
             }
         } else if (shakeEnabled) {
