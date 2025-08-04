@@ -740,6 +740,22 @@
             100% { transform: translateX(100%); }
         }
 
+        /* Анимация для эффекта тряски телефона */
+        @keyframes shakeEffectAnim {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1) translateY(-100px);
+            }
+        }
+
         /* Стили для кибер рейтинга */
         .leaderboard-tabs {
             display: flex;
@@ -1635,6 +1651,6 @@
 
     <!-- Подключение Telegram Web Apps API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=2025080413"></script>
+    <script src="game.js?v=2025080414"></script>
 </body>
 </html>

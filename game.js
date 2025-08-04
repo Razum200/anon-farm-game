@@ -1018,6 +1018,9 @@ class AnonFarm {
         document.getElementById('upgradeAuto').addEventListener('click', () => this.buyUpgrade('auto'));
         document.getElementById('upgradeMultiplier').addEventListener('click', () => this.buyUpgrade('multiplier'));
         
+        // Инициализируем тряску телефона для фермы
+        this.initShakeDetection();
+        
 
         
         // Обработчики навигации между страницами
@@ -1074,6 +1077,107 @@ class AnonFarm {
         }, 1000);
     }
 
+    // Эффект для тряски телефона
+    showShakeEffect(amount) {
+        const effect = document.createElement('div');
+        effect.className = 'shake-effect';
+        effect.textContent = `+${this.formatNumber(amount)} $ANON`;
+        effect.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ff00;
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ff00;
+            z-index: 10000;
+            pointer-events: none;
+            animation: shakeEffectAnim 1.5s ease-out forwards;
+        `;
+        
+        document.body.appendChild(effect);
+        
+        setTimeout(() => {
+            if (effect.parentNode) {
+                effect.remove();
+            }
+        }, 1500);
+    }
+
+    // Инициализация детекции тряски телефона
+    initShakeDetection() {
+        if (!window.DeviceMotionEvent) {
+            console.log('📱 DeviceMotion не поддерживается на этом устройстве');
+            return;
+        }
+
+        let lastUpdate = 0;
+        let lastX = 0, lastY = 0, lastZ = 0;
+        const threshold = 15; // Чувствительность тряски
+        const cooldown = 500; // Задержка между срабатываниями (мс)
+
+        const handleMotion = (event) => {
+            const current = event.accelerationIncludingGravity;
+            if (!current) return;
+
+            const currentTime = new Date().getTime();
+            if ((currentTime - lastUpdate) < cooldown) return;
+
+            const diffTime = currentTime - lastUpdate;
+            lastUpdate = currentTime;
+
+            const speed = Math.abs(current.x + current.y + current.z - lastX - lastY - lastZ) / diffTime * 10000;
+
+            if (speed > threshold) {
+                console.log('📱 Тряска телефона обнаружена! Фермим ANON!');
+                
+                // Создаем виртуальное событие для клика
+                const virtualEvent = {
+                    target: document.getElementById('farmButton'),
+                    preventDefault: () => {},
+                    type: 'shake'
+                };
+                
+                this.clickFarm(virtualEvent);
+                
+                // Показываем уведомление о тряске
+                this.showNotification('📱 Тряска телефона = ферма!', 'info');
+                
+                // Вибрация в Telegram
+                if (this.tg && this.tg.HapticFeedback) {
+                    this.tg.HapticFeedback.impactOccurred('heavy');
+                }
+            }
+
+            lastX = current.x;
+            lastY = current.y;
+            lastZ = current.z;
+        };
+
+        // Запрашиваем разрешение на доступ к акселерометру
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            // iOS 13+ требует разрешения
+            document.addEventListener('click', () => {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion, false);
+                            console.log('📱 Разрешение на тряску получено!');
+                            this.showNotification('📱 Тряска телефона активирована!', 'success');
+                        } else {
+                            console.log('📱 Разрешение на тряску отклонено');
+                        }
+                    })
+                    .catch(console.error);
+            }, { once: true });
+        } else {
+            // Android и другие устройства
+            window.addEventListener('devicemotion', handleMotion, false);
+            console.log('📱 Детекция тряски активирована!');
+        }
+    }
+
     clickFarm(event) {
         // Добавляем токены за клик
         const earnings = this.gameData.clickPower * this.gameData.multiplier;
@@ -1091,13 +1195,26 @@ class AnonFarm {
         }
         
         // Создаем эффект частиц при клике
-        const rect = event.target.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
+        let x, y;
+        if (event.type === 'shake') {
+            // Для тряски телефона - частицы в центре экрана
+            x = window.innerWidth / 2;
+            y = window.innerHeight / 2;
+        } else {
+            // Для обычного клика - частицы на кнопке
+            const rect = event.target.getBoundingClientRect();
+            x = rect.left + rect.width / 2;
+            y = rect.top + rect.height / 2;
+        }
         this.particleSystem.createClickParticles(x, y, earnings);
         
         // Показываем анимацию
-        this.showClickEffect(event, earnings);
+        if (event.type !== 'shake') {
+            this.showClickEffect(event, earnings);
+        } else {
+            // Для тряски показываем эффект в центре экрана
+            this.showShakeEffect(earnings);
+        }
         
         // Обновляем отображение
         this.updateDisplay();
