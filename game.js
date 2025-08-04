@@ -145,6 +145,100 @@ class SoundSystem {
     }
 }
 
+// Система печатающегося текста
+class TypingSystem {
+    constructor() {
+        this.typingQueue = [];
+        this.isTyping = false;
+    }
+    
+    typeText(element, text, speed = 50, callback = null) {
+        if (typeof element === 'string') {
+            element = document.querySelector(element);
+        }
+        
+        if (!element) return;
+        
+        // Добавляем в очередь
+        this.typingQueue.push({
+            element,
+            text,
+            speed,
+            callback
+        });
+        
+        // Запускаем если не печатаем
+        if (!this.isTyping) {
+            this.processQueue();
+        }
+    }
+    
+    async processQueue() {
+        if (this.typingQueue.length === 0) {
+            this.isTyping = false;
+            return;
+        }
+        
+        this.isTyping = true;
+        const { element, text, speed, callback } = this.typingQueue.shift();
+        
+        // Очищаем элемент
+        element.textContent = '';
+        element.classList.add('typing-text');
+        
+        // Печатаем по символу
+        for (let i = 0; i <= text.length; i++) {
+            element.textContent = text.slice(0, i);
+            await this.delay(speed);
+        }
+        
+        // Убираем курсор через секунду
+        setTimeout(() => {
+            element.classList.remove('typing-text');
+        }, 1000);
+        
+        // Вызываем колбэк
+        if (callback) callback();
+        
+        // Продолжаем очередь
+        this.processQueue();
+    }
+    
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    createTerminalMessage(text, container = document.body) {
+        const terminalDiv = document.createElement('div');
+        terminalDiv.className = 'terminal-text';
+        terminalDiv.style.position = 'fixed';
+        terminalDiv.style.top = '20px';
+        terminalDiv.style.left = '20px';
+        terminalDiv.style.zIndex = '1002';
+        terminalDiv.style.maxWidth = '300px';
+        
+        container.appendChild(terminalDiv);
+        
+        this.typeText(terminalDiv, text, 30, () => {
+            setTimeout(() => {
+                if (terminalDiv.parentNode) {
+                    terminalDiv.parentNode.removeChild(terminalDiv);
+                }
+            }, 3000);
+        });
+    }
+    
+    addMatrixEffect(element) {
+        if (typeof element === 'string') {
+            element = document.querySelector(element);
+        }
+        
+        if (element) {
+            element.classList.add('matrix-text');
+        }
+    }
+}
+
 // Система частиц
 class ParticleSystem {
     constructor() {
@@ -350,6 +444,9 @@ class AnonFarm {
         
         // Инициализируем звуковую систему
         this.soundSystem = new SoundSystem();
+        
+        // Инициализируем систему печатающегося текста
+        this.typingSystem = new TypingSystem();
     }
 
     initTelegram() {
@@ -509,6 +606,14 @@ class AnonFarm {
         }, 300000); // 5 минут
         
         console.log('Игра ANON Farm запущена!');
+        
+        // Приветственное сообщение с эффектом печатания
+        setTimeout(() => {
+            this.typingSystem.createTerminalMessage('> INITIALIZING ANON FARM PROTOCOL...');
+            setTimeout(() => {
+                this.typingSystem.createTerminalMessage('> CONNECTION ESTABLISHED');
+            }, 2000);
+        }, 1000);
     }
 
     clickFarm(event) {
@@ -591,6 +696,14 @@ class AnonFarm {
             // Звуковой эффект покупки улучшения
             this.soundSystem.play('upgrade');
             
+            // Терминальное сообщение об улучшении
+            const upgradeNames = {
+                click: 'CLICK_POWER',
+                auto: 'AUTO_FARM',
+                multiplier: 'MULTIPLIER'
+            };
+            this.typingSystem.createTerminalMessage(`> UPGRADE: ${upgradeNames[type]} +1`);
+            
             // Показываем уведомление
             this.showNotification(`Улучшение куплено! 🎉`);
             
@@ -662,6 +775,9 @@ class AnonFarm {
         
         // Звуковой эффект повышения уровня
         this.soundSystem.play('levelUp');
+        
+        // Терминальное сообщение о повышении уровня
+        this.typingSystem.createTerminalMessage(`> SYSTEM: LEVEL ${this.gameData.level} ACHIEVED`);
         
         // Удаляем эффект через 2 секунды
         setTimeout(() => {
