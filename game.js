@@ -1403,7 +1403,7 @@ class AnonFarm {
 
         let lastUpdate = 0;
         let lastX = 0, lastY = 0, lastZ = 0;
-        const threshold = 20; // Увеличил порог для большей чувствительности
+        const threshold = 3; // Уменьшил порог для максимальной чувствительности
         const cooldown = 100; // Уменьшил задержку для более частых срабатываний
 
         this.handleMotion = (event) => {
