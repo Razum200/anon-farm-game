@@ -1110,7 +1110,7 @@ class AnonFarm {
 
     // Улучшенный киберпанк текст тряски с детальной информацией
     showShakeText(multiplier = 1, speed = 0, intensity = 0) {
-        const texts = ['SHAKE', 'shake', 'ТРЯСИ', 'SHAKE!', 'shake!', 'ТРЯСИ!'];
+        const texts = ['SHAKE', 'shake', 'ТРЯСИ', 'SHAKE!', 'shake!', 'ТРЯСИ!', 'МОЩЬ!', 'СИЛА!', 'БУМ!'];
         const colors = ['#00ffff', '#ff00ff', '#ffff00', '#00ff00', '#ff0080', '#0080ff'];
         
         // Добавляем текст с множителем для сильной тряски
@@ -1122,11 +1122,13 @@ class AnonFarm {
         
         // Добавляем специальные тексты для очень сильной тряски
         if (multiplier >= 8) {
-            texts.push(`LEGENDARY!`, `EPIC!`, `MAXIMUM!`);
+            texts.push(`LEGENDARY!`, `EPIC!`, `MAXIMUM!`, `ULTIMATE!`, `GODLIKE!`);
+        } else if (multiplier >= 6) {
+            texts.push(`POWER!`, `BOOST!`, `MEGA!`, `ULTRA!`, `SUPER!`);
         }
         
-        // Уменьшаем количество текстов - они перекрывают экран
-        const count = multiplier >= 5 ? Math.floor(Math.random() * 2) + 2 : Math.floor(Math.random() * 1) + 1;
+        // Восстанавливаем количество текстов для сильной тряски
+        const count = multiplier >= 5 ? Math.floor(Math.random() * 4) + 3 : Math.floor(Math.random() * 2) + 2;
         
         for (let i = 0; i < count; i++) {
             const text = texts[Math.floor(Math.random() * texts.length)];
@@ -1141,13 +1143,13 @@ class AnonFarm {
             const x = Math.random() * (window.innerWidth - 200) + 100 + (Math.random() - 0.5) * spread;
             const y = Math.random() * (window.innerHeight - 100) + 50 + (Math.random() - 0.5) * spread;
             
-            // Уменьшаем размер текста - он был слишком большим
-            const baseSize = 14;
-            const sizeMultiplier = 1 + (multiplier - 1) * 0.2; // Меньше увеличение
-            const fontSize = (Math.random() * 15 + baseSize) * sizeMultiplier;
+            // Восстанавливаем крупные тексты для сильной тряски
+            const baseSize = 20;
+            const sizeMultiplier = 1 + (multiplier - 1) * 0.5; // Больше увеличение для сильной тряски
+            const fontSize = (Math.random() * 30 + baseSize) * sizeMultiplier;
             
-            // Уменьшаем интенсивность свечения
-            const glowIntensity = Math.min(multiplier * 3, 20);
+            // Восстанавливаем яркое свечение для сильной тряски
+            const glowIntensity = Math.min(multiplier * 6, 35);
             
             shakeText.style.cssText = `
                 position: fixed;
@@ -1162,7 +1164,7 @@ class AnonFarm {
                 pointer-events: none;
                 opacity: 0;
                 transform: scale(0.5) rotate(${Math.random() * 20 - 10}deg);
-                animation: shakeTextAnim 1.5s ease-out forwards;
+                animation: shakeTextAnim 2s ease-out forwards;
             `;
             
             document.body.appendChild(shakeText);
@@ -1171,7 +1173,7 @@ class AnonFarm {
                 if (shakeText.parentNode) {
                     shakeText.remove();
                 }
-            }, 1500);
+            }, 2000);
         }
         
         // Убираем большие таблички - они перекрывают экран
