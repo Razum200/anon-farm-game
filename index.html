@@ -776,6 +776,26 @@
             }
         }
 
+        /* Анимация для информации о силе тряски */
+        @keyframes shakeInfoAnim {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9) translateY(-30px);
+            }
+        }
+
         /* Стили для кнопки переключателя тряски */
         .shake-toggle-button {
             background: 
@@ -840,6 +860,26 @@
 
         .shake-text {
             font-size: 0.9em;
+        }
+
+        /* Стили для информации о силе тряски */
+        .shake-info .power-level {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .shake-info .shake-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .shake-info .shake-stats div {
+            padding: 2px 0;
         }
 
         /* Контейнер для кнопок тряски */

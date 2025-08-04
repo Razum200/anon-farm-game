@@ -1108,13 +1108,25 @@ class AnonFarm {
         }, 1500);
     }
 
-    // Киберпанк текст тряски
-    showShakeText() {
+    // Улучшенный киберпанк текст тряски с детальной информацией
+    showShakeText(multiplier = 1, speed = 0, intensity = 0) {
         const texts = ['SHAKE', 'shake', 'ТРЯСИ', 'SHAKE!', 'shake!', 'ТРЯСИ!'];
         const colors = ['#00ffff', '#ff00ff', '#ffff00', '#00ff00', '#ff0080', '#0080ff'];
         
-        // Создаем 2-3 случайных текста
-        const count = Math.floor(Math.random() * 2) + 2;
+        // Добавляем текст с множителем для сильной тряски
+        if (multiplier >= 5) {
+            texts.push(`x${multiplier}`, `POWER!`, `BOOST!`, `MEGA!`, `ULTRA!`);
+        } else if (multiplier >= 3) {
+            texts.push(`x${multiplier}`, `POWER!`, `BOOST!`);
+        }
+        
+        // Добавляем специальные тексты для очень сильной тряски
+        if (multiplier >= 8) {
+            texts.push(`LEGENDARY!`, `EPIC!`, `MAXIMUM!`);
+        }
+        
+        // Создаем больше текстов для сильной тряски
+        const count = multiplier >= 5 ? Math.floor(Math.random() * 3) + 4 : Math.floor(Math.random() * 2) + 2;
         
         for (let i = 0; i < count; i++) {
             const text = texts[Math.floor(Math.random() * texts.length)];
@@ -1124,24 +1136,33 @@ class AnonFarm {
             shakeText.className = 'shake-text';
             shakeText.textContent = text;
             
-            // Случайная позиция на экране
-            const x = Math.random() * (window.innerWidth - 200) + 100;
-            const y = Math.random() * (window.innerHeight - 100) + 50;
+            // Случайная позиция на экране с учетом силы тряски
+            const spread = Math.min(multiplier * 50, 300); // Больше разброс для сильной тряски
+            const x = Math.random() * (window.innerWidth - 200) + 100 + (Math.random() - 0.5) * spread;
+            const y = Math.random() * (window.innerHeight - 100) + 50 + (Math.random() - 0.5) * spread;
+            
+            // Размер текста зависит от силы тряски (улучшенная формула)
+            const baseSize = 18;
+            const sizeMultiplier = 1 + (multiplier - 1) * 0.4; // Более заметное увеличение
+            const fontSize = (Math.random() * 25 + baseSize) * sizeMultiplier;
+            
+            // Интенсивность свечения зависит от силы тряски
+            const glowIntensity = Math.min(multiplier * 5, 30);
             
             shakeText.style.cssText = `
                 position: fixed;
                 top: ${y}px;
                 left: ${x}px;
                 color: ${color};
-                font-size: ${Math.random() * 20 + 20}px;
+                font-size: ${fontSize}px;
                 font-weight: bold;
                 font-family: 'Courier New', monospace;
-                text-shadow: 0 0 15px ${color}, 0 0 30px ${color};
+                text-shadow: 0 0 ${glowIntensity}px ${color}, 0 0 ${glowIntensity * 2}px ${color};
                 z-index: 9999;
                 pointer-events: none;
                 opacity: 0;
                 transform: scale(0.5) rotate(${Math.random() * 20 - 10}deg);
-                animation: shakeTextAnim 2s ease-out forwards;
+                animation: shakeTextAnim 2.5s ease-out forwards;
             `;
             
             document.body.appendChild(shakeText);
@@ -1150,8 +1171,74 @@ class AnonFarm {
                 if (shakeText.parentNode) {
                     shakeText.remove();
                 }
-            }, 2000);
+            }, 2500);
         }
+        
+        // Показываем дополнительную информацию о силе тряски для очень сильных трясок
+        if (multiplier >= 6) {
+            this.showShakeInfo(speed, intensity, multiplier);
+        }
+    }
+
+    // Показ детальной информации о силе тряски
+    showShakeInfo(speed, intensity, multiplier) {
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'shake-info';
+        
+        // Определяем уровень силы тряски
+        let powerLevel = 'Обычная';
+        let powerColor = '#00ffff';
+        
+        if (multiplier >= 9) {
+            powerLevel = 'ЛЕГЕНДАРНАЯ';
+            powerColor = '#ff00ff';
+        } else if (multiplier >= 7) {
+            powerLevel = 'ЭПИЧЕСКАЯ';
+            powerColor = '#ffff00';
+        } else if (multiplier >= 5) {
+            powerLevel = 'МОЩНАЯ';
+            powerColor = '#00ff00';
+        }
+        
+        infoDiv.innerHTML = `
+            <div class="shake-info-content">
+                <div class="power-level" style="color: ${powerColor};">${powerLevel}</div>
+                <div class="shake-stats">
+                    <div>Сила: ${Math.round(speed)}</div>
+                    <div>Интенсивность: ${Math.round(intensity)}</div>
+                    <div>Множитель: x${multiplier}</div>
+                </div>
+            </div>
+        `;
+        
+        infoDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(26,26,46,0.95));
+            border: 2px solid ${powerColor};
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: center;
+            z-index: 10001;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: 0 0 30px ${powerColor}40;
+            animation: shakeInfoAnim 3s ease-out forwards;
+        `;
+        
+        document.body.appendChild(infoDiv);
+        
+        // Удаляем через 3 секунды
+        setTimeout(() => {
+            if (infoDiv.parentNode) {
+                infoDiv.remove();
+            }
+        }, 3000);
     }
 
     // Инициализация кнопки переключателя тряски
@@ -1316,8 +1403,8 @@ class AnonFarm {
 
         let lastUpdate = 0;
         let lastX = 0, lastY = 0, lastZ = 0;
-        const threshold = 11; // Чувствительность тряски (было 7)
-        const cooldown = 150; // Задержка между срабатываниями (мс) (было 500)
+        const threshold = 8; // Уменьшил порог для большей чувствительности
+        const cooldown = 100; // Уменьшил задержку для более частых срабатываний
 
         this.handleMotion = (event) => {
             const current = event.accelerationIncludingGravity;
@@ -1329,26 +1416,72 @@ class AnonFarm {
             const diffTime = currentTime - lastUpdate;
             lastUpdate = currentTime;
 
-            const speed = Math.abs(current.x + current.y + current.z - lastX - lastY - lastZ) / diffTime * 10000;
+            // Улучшенный расчет силы тряски - используем более точную формулу
+            const deltaX = Math.abs(current.x - lastX);
+            const deltaY = Math.abs(current.y - lastY);
+            const deltaZ = Math.abs(current.z - lastZ);
+            
+            // Рассчитываем общую силу тряски с учетом всех осей
+            const totalDelta = deltaX + deltaY + deltaZ;
+            const speed = (totalDelta / diffTime) * 10000;
+            
+            // Дополнительный расчет интенсивности тряски
+            const intensity = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) / diffTime * 10000;
 
             if (speed > threshold) {
                 console.log('📱 Тряска телефона обнаружена! Фермим ANON!');
                 
-                // Создаем виртуальное событие для клика
+                // Улучшенный расчет множителя на основе силы тряски
+                // Используем логарифмическую шкалу для более плавного роста
+                const baseMultiplier = Math.log(speed / threshold + 1) / Math.log(2);
+                const intensityBonus = Math.min(intensity / 50, 2); // Бонус за интенсивность до x2
+                const shakeMultiplier = Math.min(Math.floor(baseMultiplier + intensityBonus), 10); // Максимум x10
+                
+                const baseEarnings = this.gameData.clickPower * this.gameData.multiplier;
+                const shakeEarnings = baseEarnings * shakeMultiplier;
+                
+                console.log('📱 Улучшенная сила тряски:', {
+                    speed: Math.round(speed),
+                    intensity: Math.round(intensity),
+                    threshold,
+                    baseMultiplier: Math.round(baseMultiplier * 100) / 100,
+                    intensityBonus: Math.round(intensityBonus * 100) / 100,
+                    finalMultiplier: shakeMultiplier,
+                    earnings: shakeEarnings
+                });
+                
+                // Создаем виртуальное событие для клика с информацией о тряске
                 const virtualEvent = {
                     target: document.getElementById('farmButton'),
                     preventDefault: () => {},
-                    type: 'shake'
+                    type: 'shake',
+                    shakeData: {
+                        speed: speed,
+                        multiplier: shakeMultiplier,
+                        earnings: shakeEarnings
+                    }
                 };
                 
                 this.clickFarm(virtualEvent);
                 
-                // Показываем киберпанк эффект тряски
-                this.showShakeText();
+                // Показываем улучшенный киберпанк эффект тряски с информацией о силе
+                this.showShakeText(shakeMultiplier, speed, intensity);
                 
-                // Вибрация в Telegram
+                // Улучшенная вибрация в Telegram (сила зависит от интенсивности тряски)
                 if (this.tg && this.tg.HapticFeedback) {
-                    this.tg.HapticFeedback.impactOccurred('heavy');
+                    let impactStyle;
+                    if (shakeMultiplier >= 7) {
+                        impactStyle = 'heavy';
+                        // Двойная вибрация для очень сильной тряски
+                        setTimeout(() => this.tg.HapticFeedback.impactOccurred('heavy'), 100);
+                    } else if (shakeMultiplier >= 4) {
+                        impactStyle = 'heavy';
+                    } else if (shakeMultiplier >= 2) {
+                        impactStyle = 'medium';
+                    } else {
+                        impactStyle = 'light';
+                    }
+                    this.tg.HapticFeedback.impactOccurred(impactStyle);
                 }
             }
 
@@ -1414,8 +1547,16 @@ class AnonFarm {
     }
 
     clickFarm(event) {
-        // Добавляем токены за клик
-        const earnings = this.gameData.clickPower * this.gameData.multiplier;
+        // Определяем заработок в зависимости от типа события
+        let earnings;
+        if (event.type === 'shake' && event.shakeData) {
+            // Для тряски используем рассчитанный заработок
+            earnings = event.shakeData.earnings;
+        } else {
+            // Для обычного клика используем базовый заработок
+            earnings = this.gameData.clickPower * this.gameData.multiplier;
+        }
+        
         const oldLevel = this.gameData.level;
         this.gameData.tokens += earnings;
         this.gameData.totalClicks += 1;
@@ -1435,13 +1576,26 @@ class AnonFarm {
             // Для тряски телефона - частицы в центре экрана
             x = window.innerWidth / 2;
             y = window.innerHeight / 2;
+            
+            // Создаем больше частиц для сильной тряски
+            const shakeData = event.shakeData;
+            const particleCount = Math.min(shakeData.multiplier * 3, 30); // До 30 частиц для очень сильной тряски
+            
+            // Создаем множественные взрывы частиц для сильной тряски
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    const offsetX = (Math.random() - 0.5) * 100;
+                    const offsetY = (Math.random() - 0.5) * 100;
+                    this.particleSystem.createClickParticles(x + offsetX, y + offsetY, earnings);
+                }, i * 50); // Задержка между взрывами
+            }
         } else {
             // Для обычного клика - частицы на кнопке
             const rect = event.target.getBoundingClientRect();
             x = rect.left + rect.width / 2;
             y = rect.top + rect.height / 2;
+            this.particleSystem.createClickParticles(x, y, earnings);
         }
-        this.particleSystem.createClickParticles(x, y, earnings);
         
         // Показываем анимацию
         if (event.type !== 'shake') {
@@ -1463,8 +1617,8 @@ class AnonFarm {
         this.soundSystem.play('click');
         this.soundSystem.play('coin');
         
-        // Вибрация в Telegram
-        if (this.tg && this.tg.HapticFeedback) {
+        // Вибрация в Telegram (только для обычных кликов, для тряски уже обработано)
+        if (event.type !== 'shake' && this.tg && this.tg.HapticFeedback) {
             this.tg.HapticFeedback.impactOccurred('light');
         }
     }
