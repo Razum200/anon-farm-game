@@ -213,6 +213,8 @@ def create_pvp_game(player1_id, player1_name, bet_amount):
     active_players[player1_id] = game_id
     
     print(f"🎮 Создана PvP игра {game_id} для игрока {player1_name}")
+    print(f"🎮 Всего игр в pvp_games: {len(pvp_games)}")
+    print(f"🎮 Ключи игр: {list(pvp_games.keys())}")
     return game
 
 def create_deck():
@@ -302,8 +304,17 @@ def join_pvp_game(game_id, player2_id, player2_name):
 
 def get_available_games(player_id):
     """Получаем доступные игры"""
+    print(f"🔍 get_available_games вызвана для player_id: {player_id}")
+    print(f"🔍 Всего игр в pvp_games: {len(pvp_games)}")
+    print(f"🔍 Ключи игр: {list(pvp_games.keys())}")
+    
     available = []
     for game_id, game in pvp_games.items():
+        print(f"🔍 Проверяем игру {game_id}:")
+        print(f"   - state: {game['state']}")
+        print(f"   - player1_id: {game['player1']['id']}")
+        print(f"   - player_id: {player_id}")
+        
         if (game['state'] == 'waiting' and 
             game['player1']['id'] != player_id):
             available.append({
@@ -312,6 +323,11 @@ def get_available_games(player_id):
                 'bet': game['player1']['bet'],
                 'created_at': game['created_at']
             })
+            print(f"   ✅ Игра {game_id} добавлена в доступные")
+        else:
+            print(f"   ❌ Игра {game_id} не подходит")
+    
+    print(f"🔍 Возвращаем {len(available)} доступных игр")
     return available
 
 def make_pvp_move(game_id, player_id, action):
@@ -449,14 +465,22 @@ def cleanup_old_games():
     current_time = datetime.now()
     games_to_remove = []
     
+    print(f"🧹 cleanup_old_games: проверяем {len(pvp_games)} игр")
+    
     for game_id, game in pvp_games.items():
         created_time = datetime.fromisoformat(game['created_at'])
-        if (current_time - created_time).total_seconds() > 3600:  # 1 час
+        age_seconds = (current_time - created_time).total_seconds()
+        print(f"🧹 Игра {game_id}: возраст {age_seconds:.0f} секунд")
+        
+        if age_seconds > 3600:  # 1 час
             games_to_remove.append(game_id)
+            print(f"🧹 Игра {game_id} помечена для удаления")
     
     for game_id in games_to_remove:
         del pvp_games[game_id]
         print(f"🧹 Удалена старая игра {game_id}")
+    
+    print(f"🧹 Осталось игр: {len(pvp_games)}")
 
 # Загружаем статистику при запуске (безопасно)
 try:
