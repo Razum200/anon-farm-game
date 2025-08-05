@@ -1109,6 +1109,7 @@ class AnonFarm {
         
         // Инициализируем Blackjack
         this.initBlackjack();
+        this.initPvP();
         
         // Запускаем автоферму
         this.startAutoFarm();
@@ -3898,6 +3899,460 @@ class AnonFarm {
                 doubleButton.style.display = 'none';
                 break;
         }
+    }
+
+    // PvP функциональность
+    initPvP() {
+        console.log('🎮 Инициализация PvP режима...');
+        
+        this.pvpGame = {
+            currentGame: null,
+            currentBet: 10,
+            gameMode: 'bot', // bot или pvp
+            pollingInterval: null
+        };
+
+        this.setupPvPEventListeners();
+        console.log('✅ PvP режим инициализирован');
+    }
+
+    setupPvPEventListeners() {
+        // Переключение режимов
+        document.querySelectorAll('.mode-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const mode = e.target.closest('.mode-button').dataset.mode;
+                this.switchGameMode(mode);
+            });
+        });
+
+        // PvP ставки
+        document.querySelectorAll('[data-action^="pvp-"]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const action = e.target.dataset.action;
+                if (action === 'pvp-increase') {
+                    this.increasePvPBet();
+                } else if (action === 'pvp-decrease') {
+                    this.decreasePvPBet();
+                } else if (action === 'pvp-max') {
+                    this.maxPvPBet();
+                }
+            });
+        });
+
+        // Создание PvP игры
+        document.getElementById('createPvpGame').addEventListener('click', () => {
+            this.createPvPGame();
+        });
+
+        // Обновление списка игр
+        document.getElementById('refreshGames').addEventListener('click', () => {
+            this.loadAvailableGames();
+        });
+
+        // PvP ходы
+        document.getElementById('pvpHitButton').addEventListener('click', () => {
+            this.makePvPMove('hit');
+        });
+
+        document.getElementById('pvpStandButton').addEventListener('click', () => {
+            this.makePvPMove('stand');
+        });
+
+        document.getElementById('pvpDoubleButton').addEventListener('click', () => {
+            this.makePvPMove('double');
+        });
+    }
+
+    switchGameMode(mode) {
+        this.pvpGame.gameMode = mode;
+        
+        // Обновляем кнопки
+        document.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+        
+        // Показываем/скрываем интерфейсы
+        const blackjackTable = document.querySelector('.blackjack-table');
+        const pvpInterface = document.querySelector('.pvp-interface');
+        
+        if (mode === 'pvp') {
+            blackjackTable.style.display = 'none';
+            pvpInterface.style.display = 'block';
+            this.loadAvailableGames();
+        } else {
+            blackjackTable.style.display = 'block';
+            pvpInterface.style.display = 'none';
+            this.stopPvPPolling();
+        }
+        
+        this.soundSystem.play('navigation');
+    }
+
+    increasePvPBet() {
+        const maxBet = Math.min(1000000, this.gameData.tokens);
+        if (this.pvpGame.currentBet < maxBet) {
+            this.pvpGame.currentBet += 10;
+            document.getElementById('pvpBetAmount').textContent = this.pvpGame.currentBet;
+            this.soundSystem.play('click');
+        }
+    }
+
+    decreasePvPBet() {
+        if (this.pvpGame.currentBet > 10) {
+            this.pvpGame.currentBet -= 10;
+            document.getElementById('pvpBetAmount').textContent = this.pvpGame.currentBet;
+            this.soundSystem.play('click');
+        }
+    }
+
+    maxPvPBet() {
+        const maxBet = Math.min(1000000, this.gameData.tokens);
+        if (this.pvpGame.currentBet !== maxBet) {
+            this.pvpGame.currentBet = maxBet;
+            document.getElementById('pvpBetAmount').textContent = this.pvpGame.currentBet;
+            this.soundSystem.play('success');
+            this.showNotification(`💰 Максимальная ставка: ${this.formatNumber(maxBet)} $ANON`, 'info');
+        }
+    }
+
+    async createPvPGame() {
+        if (!this.telegramUser) {
+            this.showNotification('❌ Нужно войти через Telegram!', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/pvp/create_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    player_id: this.telegramUser.id,
+                    player_name: this.telegramUser.first_name || 'Анонимный',
+                    bet_amount: this.pvpGame.currentBet
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.pvpGame.currentGame = data.game;
+                this.showPvPGame();
+                this.startPvPPolling();
+                this.showNotification('🎮 Игра создана! Ожидаем противника...', 'success');
+                this.soundSystem.play('success');
+            } else {
+                this.showNotification(`❌ ${data.error}`, 'error');
+                this.soundSystem.play('error');
+            }
+        } catch (error) {
+            console.error('Ошибка создания PvP игры:', error);
+            this.showNotification('❌ Ошибка сети', 'error');
+        }
+    }
+
+    async loadAvailableGames() {
+        if (!this.telegramUser) {
+            this.showNotification('❌ Нужно войти через Telegram!', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/pvp/get_games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    player_id: this.telegramUser.id
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.displayAvailableGames(data.games);
+            } else {
+                this.showNotification(`❌ ${data.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки игр:', error);
+            this.showNotification('❌ Ошибка сети', 'error');
+        }
+    }
+
+    displayAvailableGames(games) {
+        const container = document.getElementById('availableGames');
+        
+        if (games.length === 0) {
+            container.innerHTML = '<div class="no-games">Нет доступных игр</div>';
+            return;
+        }
+
+        container.innerHTML = games.map(game => {
+            const createdTime = new Date(game.created_at).toLocaleTimeString();
+            return `
+                <div class="game-item" data-game-id="${game.id}">
+                    <div class="player-name">👤 ${game.player1_name}</div>
+                    <div class="bet-amount">💰 Ставка: ${game.bet} $ANON</div>
+                    <div class="created-time">🕐 Создана: ${createdTime}</div>
+                </div>
+            `;
+        }).join('');
+
+        // Добавляем обработчики для присоединения к играм
+        container.querySelectorAll('.game-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.joinPvPGame(item.dataset.gameId);
+            });
+        });
+    }
+
+    async joinPvPGame(gameId) {
+        if (!this.telegramUser) {
+            this.showNotification('❌ Нужно войти через Telegram!', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/pvp/join_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game_id: gameId,
+                    player_id: this.telegramUser.id,
+                    player_name: this.telegramUser.first_name || 'Анонимный'
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.pvpGame.currentGame = data.game;
+                this.showPvPGame();
+                this.startPvPPolling();
+                this.showNotification('🎮 Присоединились к игре!', 'success');
+                this.soundSystem.play('success');
+            } else {
+                this.showNotification(`❌ ${data.error}`, 'error');
+                this.soundSystem.play('error');
+            }
+        } catch (error) {
+            console.error('Ошибка присоединения к игре:', error);
+            this.showNotification('❌ Ошибка сети', 'error');
+        }
+    }
+
+    showPvPGame() {
+        const game = this.pvpGame.currentGame;
+        if (!game) return;
+
+        // Показываем активную игру
+        document.querySelector('.pvp-active-game').style.display = 'block';
+        document.querySelector('.pvp-create-game').style.display = 'none';
+        document.querySelector('.pvp-find-games').style.display = 'none';
+
+        // Обновляем информацию об игроках
+        document.getElementById('pvpPlayer1Name').textContent = game.player1.name;
+        document.getElementById('pvpPlayer2Name').textContent = game.player2 ? game.player2.name : 'Ожидание...';
+
+        // Обновляем карты
+        this.updatePvPCards('pvpPlayer1Cards', game.player1.hand);
+        if (game.player2) {
+            this.updatePvPCards('pvpPlayer2Cards', game.player2.hand);
+        }
+
+        // Обновляем очки
+        const player1Value = this.calculateHandValue(game.player1.hand);
+        document.getElementById('pvpPlayer1Score').textContent = `Очки: ${player1Value}`;
+        
+        if (game.player2) {
+            const player2Value = this.calculateHandValue(game.player2.hand);
+            document.getElementById('pvpPlayer2Score').textContent = `Очки: ${player2Value}`;
+        }
+
+        // Обновляем статус и кнопки
+        this.updatePvPStatus();
+    }
+
+    updatePvPCards(containerId, hand) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        hand.forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = `card ${card.isRed ? 'red' : ''}`;
+            
+            if (card.hidden) {
+                cardElement.classList.add('hidden');
+                cardElement.textContent = '?';
+            } else {
+                cardElement.textContent = `${card.value}${card.suit}`;
+            }
+            
+            container.appendChild(cardElement);
+        });
+    }
+
+    updatePvPStatus() {
+        const game = this.pvpGame.currentGame;
+        if (!game) return;
+
+        const statusElement = document.getElementById('pvpGameStatus');
+        const hitButton = document.getElementById('pvpHitButton');
+        const standButton = document.getElementById('pvpStandButton');
+        const doubleButton = document.getElementById('pvpDoubleButton');
+
+        const isMyTurn = game.current_turn === this.telegramUser.id;
+        const isPlayer1 = game.player1.id === this.telegramUser.id;
+        const myHand = isPlayer1 ? game.player1.hand : game.player2.hand;
+
+        if (game.state === 'waiting') {
+            statusElement.textContent = '⏳ Ожидаем противника...';
+            hitButton.style.display = 'none';
+            standButton.style.display = 'none';
+            doubleButton.style.display = 'none';
+        } else if (game.state === 'playing') {
+            if (isMyTurn) {
+                statusElement.textContent = '🎯 Ваш ход!';
+                hitButton.style.display = 'inline-block';
+                standButton.style.display = 'inline-block';
+                doubleButton.style.display = myHand.length === 2 ? 'inline-block' : 'none';
+            } else {
+                statusElement.textContent = '⏳ Ход противника...';
+                hitButton.style.display = 'none';
+                standButton.style.display = 'none';
+                doubleButton.style.display = 'none';
+            }
+        } else if (game.state === 'finished') {
+            this.handlePvPGameEnd();
+        }
+    }
+
+    async makePvPMove(action) {
+        if (!this.pvpGame.currentGame) return;
+
+        try {
+            const response = await fetch('/api/pvp/make_move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game_id: this.pvpGame.currentGame.id,
+                    player_id: this.telegramUser.id,
+                    action: action
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.pvpGame.currentGame = data.game;
+                this.showPvPGame();
+                this.soundSystem.play('click');
+                
+                if (data.result === 'bust') {
+                    this.showNotification('💥 Перебор! Игра окончена.', 'error');
+                }
+            } else {
+                this.showNotification(`❌ ${data.error}`, 'error');
+                this.soundSystem.play('error');
+            }
+        } catch (error) {
+            console.error('Ошибка хода:', error);
+            this.showNotification('❌ Ошибка сети', 'error');
+        }
+    }
+
+    startPvPPolling() {
+        this.stopPvPPolling();
+        this.pvpGame.pollingInterval = setInterval(() => {
+            this.pollPvPGame();
+        }, 2000); // Проверяем каждые 2 секунды
+    }
+
+    stopPvPPolling() {
+        if (this.pvpGame.pollingInterval) {
+            clearInterval(this.pvpGame.pollingInterval);
+            this.pvpGame.pollingInterval = null;
+        }
+    }
+
+    async pollPvPGame() {
+        if (!this.pvpGame.currentGame) return;
+
+        try {
+            const response = await fetch('/api/pvp/get_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game_id: this.pvpGame.currentGame.id,
+                    player_id: this.telegramUser.id
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.pvpGame.currentGame = data.game;
+                this.showPvPGame();
+                
+                if (data.game.state === 'finished') {
+                    this.stopPvPPolling();
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка опроса игры:', error);
+        }
+    }
+
+    handlePvPGameEnd() {
+        const game = this.pvpGame.currentGame;
+        if (!game) return;
+
+        const statusElement = document.getElementById('pvpGameStatus');
+        const hitButton = document.getElementById('pvpHitButton');
+        const standButton = document.getElementById('pvpStandButton');
+        const doubleButton = document.getElementById('pvpDoubleButton');
+
+        hitButton.style.display = 'none';
+        standButton.style.display = 'none';
+        doubleButton.style.display = 'none';
+
+        if (game.winner === this.telegramUser.id) {
+            statusElement.textContent = '🎉 Победа!';
+            this.showNotification('🎉 Вы победили!', 'success');
+            this.soundSystem.play('levelUp');
+        } else if (game.winner) {
+            statusElement.textContent = '💀 Поражение';
+            this.showNotification('💀 Вы проиграли', 'error');
+            this.soundSystem.play('error');
+        } else {
+            statusElement.textContent = '🤝 Ничья';
+            this.showNotification('🤝 Ничья!', 'info');
+            this.soundSystem.play('notification');
+        }
+
+        // Возвращаемся к меню через 5 секунд
+        setTimeout(() => {
+            this.resetPvPGame();
+        }, 5000);
+    }
+
+    resetPvPGame() {
+        this.pvpGame.currentGame = null;
+        this.stopPvPPolling();
+        
+        document.querySelector('.pvp-active-game').style.display = 'none';
+        document.querySelector('.pvp-create-game').style.display = 'block';
+        document.querySelector('.pvp-find-games').style.display = 'block';
+        
+        this.loadAvailableGames();
     }
 }
 
