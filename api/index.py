@@ -332,12 +332,21 @@ def get_available_games(player_id):
 
 def make_pvp_move(game_id, player_id, action):
     """Делаем ход в PvP игре"""
-    global players_stats
+    global pvp_games, players_stats
+    
+    print(f"🎮 make_pvp_move: game_id={game_id}, player_id={player_id}, action={action}")
+    print(f"🎮 Всего игр в pvp_games: {len(pvp_games)}")
+    print(f"🎮 Ключи игр: {list(pvp_games.keys())}")
+    
     if game_id not in pvp_games:
+        print(f"❌ Игра {game_id} не найдена")
         return {'success': False, 'error': 'Игра не найдена'}
     
     game = pvp_games[game_id]
+    print(f"🎮 Найдена игра: state={game['state']}, current_turn={game.get('current_turn')}")
+    
     if game['state'] != 'playing':
+        print(f"❌ Игра не в состоянии 'playing'")
         return {'success': False, 'error': 'Игра не активна'}
     
     if game['current_turn'] != player_id:
