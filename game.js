@@ -4038,7 +4038,7 @@ class AnonFarm {
         }
 
         try {
-            const response = await fetch('/api/pvp/create_game', {
+            const response = await fetch('https://anon-farm-api.vercel.app/api/pvp/create_game', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -4075,7 +4075,7 @@ class AnonFarm {
         }
 
         try {
-            const response = await fetch('/api/pvp/get_games', {
+            const response = await fetch('https://anon-farm-api.vercel.app/api/pvp/get_games', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -4132,7 +4132,7 @@ class AnonFarm {
         }
 
         try {
-            const response = await fetch('/api/pvp/join_game', {
+            const response = await fetch('https://anon-farm-api.vercel.app/api/pvp/join_game', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -4252,7 +4252,7 @@ class AnonFarm {
         if (!this.pvpGame.currentGame) return;
 
         try {
-            const response = await fetch('/api/pvp/make_move', {
+            const response = await fetch('https://anon-farm-api.vercel.app/api/pvp/make_move', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -4302,7 +4302,7 @@ class AnonFarm {
         if (!this.pvpGame.currentGame) return;
 
         try {
-            const response = await fetch('/api/pvp/get_game', {
+            const response = await fetch('https://anon-farm-api.vercel.app/api/pvp/get_game', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
