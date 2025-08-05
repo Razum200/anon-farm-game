@@ -1495,10 +1495,15 @@ class AnonFarm {
             return;
         }
 
+        // Удаляем старый обработчик если есть
+        if (this.handleMotion) {
+            window.removeEventListener('devicemotion', this.handleMotion, false);
+        }
+
         let lastUpdate = 0;
         let lastX = 0, lastY = 0, lastZ = 0;
-        const threshold = 400; // Увеличил порог для экстремально нечувствительной тряски
-        const cooldown = 120; // Увеличил задержку для более редких срабатываний
+        const threshold = 400; // Порог для тряски
+        const cooldown = 120; // Задержка между срабатываниями
 
         this.handleMotion = (event) => {
             const current = event.accelerationIncludingGravity;
@@ -1510,41 +1515,34 @@ class AnonFarm {
             const diffTime = currentTime - lastUpdate;
             lastUpdate = currentTime;
 
-            // Улучшенный расчет силы тряски - используем более точную формулу
+            // Расчет силы тряски
             const deltaX = Math.abs(current.x - lastX);
             const deltaY = Math.abs(current.y - lastY);
             const deltaZ = Math.abs(current.z - lastZ);
             
-            // Рассчитываем общую силу тряски с учетом всех осей
             const totalDelta = deltaX + deltaY + deltaZ;
             const speed = (totalDelta / diffTime) * 10000;
-            
-            // Дополнительный расчет интенсивности тряски
             const intensity = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) / diffTime * 10000;
 
             if (speed > threshold) {
                 console.log('📱 Тряска телефона обнаружена! Фермим ANON!');
                 
-                // Улучшенный расчет множителя на основе силы тряски
-                // Используем логарифмическую шкалу для более плавного роста
+                // Расчет множителя
                 const baseMultiplier = Math.log(speed / threshold + 1) / Math.log(2);
-                const intensityBonus = Math.min(intensity / 50, 2); // Бонус за интенсивность до x2
-                const shakeMultiplier = Math.min(Math.floor(baseMultiplier + intensityBonus), 10); // Максимум x10
+                const intensityBonus = Math.min(intensity / 50, 2);
+                const shakeMultiplier = Math.min(Math.floor(baseMultiplier + intensityBonus), 10);
                 
                 const baseEarnings = this.gameData.clickPower * this.gameData.multiplier;
                 const shakeEarnings = baseEarnings * shakeMultiplier;
                 
-                console.log('📱 Улучшенная сила тряски:', {
+                console.log('📱 Сила тряски:', {
                     speed: Math.round(speed),
                     intensity: Math.round(intensity),
-                    threshold,
-                    baseMultiplier: Math.round(baseMultiplier * 100) / 100,
-                    intensityBonus: Math.round(intensityBonus * 100) / 100,
-                    finalMultiplier: shakeMultiplier,
+                    multiplier: shakeMultiplier,
                     earnings: shakeEarnings
                 });
                 
-                // Создаем виртуальное событие для клика с информацией о тряске
+                // Создаем виртуальное событие для клика
                 const virtualEvent = {
                     target: document.getElementById('farmButton'),
                     preventDefault: () => {},
@@ -1557,16 +1555,13 @@ class AnonFarm {
                 };
                 
                 this.clickFarm(virtualEvent);
-                
-                // Показываем улучшенный киберпанк эффект тряски с информацией о силе
                 this.showShakeText(shakeMultiplier, speed, intensity);
                 
-                // Улучшенная вибрация в Telegram (сила зависит от интенсивности тряски)
+                // Вибрация в Telegram
                 if (this.tg && this.tg.HapticFeedback) {
                     let impactStyle;
                     if (shakeMultiplier >= 7) {
                         impactStyle = 'heavy';
-                        // Двойная вибрация для очень сильной тряски
                         setTimeout(() => this.tg.HapticFeedback.impactOccurred('heavy'), 100);
                     } else if (shakeMultiplier >= 4) {
                         impactStyle = 'heavy';
@@ -1584,18 +1579,16 @@ class AnonFarm {
             lastZ = current.z;
         };
 
-        // Проверяем сохраненное разрешение и настройку
+        // Проверяем настройки
         const savedPermission = localStorage.getItem('shakePermission');
-        const shakeEnabled = localStorage.getItem('shakeEnabled') !== 'false'; // По умолчанию включено
+        const shakeEnabled = localStorage.getItem('shakeEnabled') !== 'false';
         
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
             // iOS 13+ требует разрешения
             if (savedPermission === 'granted' && shakeEnabled) {
-                // Разрешение уже было дано и тряска включена, активируем сразу
                 window.addEventListener('devicemotion', this.handleMotion, false);
                 console.log('📱 Разрешение на тряску уже получено!');
             } else if (shakeEnabled) {
-                // Запрашиваем разрешение
                 const requestPermission = () => {
                     DeviceMotionEvent.requestPermission()
                         .then(permissionState => {
@@ -1608,28 +1601,21 @@ class AnonFarm {
                                 localStorage.setItem('shakePermission', 'denied');
                                 console.log('📱 Разрешение на тряску отклонено');
                                 this.showNotification('📱 Разрешение отклонено. Нажмите SHAKE еще раз для повторного запроса.', 'info');
-                                
-                                // Показываем инструкцию для iPhone
                                 this.showIPhonePermissionInstructions();
                             }
                         })
                         .catch(console.error);
                 };
 
-                // Если принудительный запрос - всегда запрашиваем
                 if (forceRequest) {
                     console.log('🔧 Принудительный запрос разрешения тряски');
                     requestPermission();
                 } else if (savedPermission !== 'denied') {
-                    // Если не было отказа - запрашиваем в первый раз
                     console.log('🔧 Первый запрос разрешения тряски');
                     requestPermission();
                 } else {
-                    // Если разрешение было отклонено, показываем сообщение
                     console.log('🔧 Разрешение было отклонено, показываем подсказку');
                     this.showNotification('📱 Нажмите SHAKE еще раз для запроса разрешения', 'info');
-                    
-                    // Показываем инструкцию для iPhone
                     this.showIPhonePermissionInstructions();
                 }
             }
@@ -2990,6 +2976,18 @@ class AnonFarm {
                 this.soundSystem.play('navigation');
             });
         }
+
+        // Кнопка акселерометра для бильярда
+        const accelerometerButton = document.getElementById('toggleAccelerometer');
+        if (accelerometerButton) {
+            // Обновляем текст кнопки в зависимости от статуса разрешения
+            this.updateAccelerometerButton();
+            
+            accelerometerButton.addEventListener('click', () => {
+                this.requestBilliardAccelerometerPermission();
+                this.soundSystem.play('navigation');
+            });
+        }
         
         // Запуск игрового цикла
         console.log('🎮 Запуск игрового цикла бильярда...');
@@ -3027,42 +3025,98 @@ class AnonFarm {
 
         // Акселерометр для мобильных устройств
         if (window.DeviceMotionEvent) {
-            console.log('🎮 Акселерометр поддерживается, запрашиваем разрешение...');
+            console.log('🎮 Акселерометр поддерживается, настраиваем...');
             
-            // Запрашиваем разрешение на использование акселерометра
+            // Проверяем сохраненное разрешение для бильярда
+            const billiardPermission = localStorage.getItem('billiardAccelerometerPermission');
+            
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                console.log('🎮 Запрашиваем разрешение на акселерометр...');
-                DeviceMotionEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            console.log('✅ Разрешение на акселерометр получено');
-                            this.setupAccelerometer();
-                        } else {
-                            console.log('❌ Разрешение на акселерометр отклонено');
-                        }
-                    })
-                    .catch(err => {
-                        console.log('❌ Ошибка запроса разрешения акселерометра:', err);
-                    });
+                if (billiardPermission === 'granted') {
+                    console.log('✅ Разрешение на акселерометр бильярда уже получено');
+                    this.setupBilliardAccelerometer();
+                } else {
+                    console.log('🎮 Запрашиваем разрешение на акселерометр бильярда...');
+                    // Запрашиваем разрешение при первом входе в бильярд
+                    this.requestBilliardAccelerometerPermission();
+                }
             } else {
-                console.log('🎮 Разрешение не требуется, настраиваем акселерометр...');
-                this.setupAccelerometer();
+                console.log('🎮 Разрешение не требуется, настраиваем акселерометр бильярда...');
+                this.setupBilliardAccelerometer();
             }
         } else {
             console.log('❌ Акселерометр не поддерживается');
         }
     }
 
-    // Настройка акселерометра
-    setupAccelerometer() {
-        let lastUpdate = 0;
-        const threshold = 0.3;
+    // Запрос разрешения на акселерометр для бильярда
+    requestBilliardAccelerometerPermission() {
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            DeviceMotionEvent.requestPermission()
+                .then(permissionState => {
+                    if (permissionState === 'granted') {
+                        localStorage.setItem('billiardAccelerometerPermission', 'granted');
+                        console.log('✅ Разрешение на акселерометр бильярда получено');
+                        this.setupBilliardAccelerometer();
+                        this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
+                        this.updateAccelerometerButton();
+                    } else {
+                        localStorage.setItem('billiardAccelerometerPermission', 'denied');
+                        console.log('❌ Разрешение на акселерометр бильярда отклонено');
+                        this.showNotification('🎮 Акселерометр отключен. Используйте мышь для управления.', 'info');
+                        this.updateAccelerometerButton();
+                    }
+                })
+                .catch(err => {
+                    console.log('❌ Ошибка запроса разрешения акселерометра бильярда:', err);
+                    this.showNotification('🎮 Ошибка настройки акселерометра', 'error');
+                    this.updateAccelerometerButton();
+                });
+        } else {
+            // Для устройств без запроса разрешения
+            localStorage.setItem('billiardAccelerometerPermission', 'granted');
+            this.setupBilliardAccelerometer();
+            this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
+            this.updateAccelerometerButton();
+        }
+    }
 
-        window.addEventListener('devicemotion', (event) => {
+    // Обновление кнопки акселерометра
+    updateAccelerometerButton() {
+        const accelerometerButton = document.getElementById('toggleAccelerometer');
+        if (!accelerometerButton) return;
+
+        const permission = localStorage.getItem('billiardAccelerometerPermission');
+        
+        if (permission === 'granted') {
+            accelerometerButton.textContent = '📱 Акселерометр включен';
+            accelerometerButton.style.borderColor = '#00ff00';
+            accelerometerButton.style.color = '#00ff00';
+        } else if (permission === 'denied') {
+            accelerometerButton.textContent = '📱 Акселерометр отключен';
+            accelerometerButton.style.borderColor = '#ff0000';
+            accelerometerButton.style.color = '#ff0000';
+        } else {
+            accelerometerButton.textContent = '📱 Включить акселерометр';
+            accelerometerButton.style.borderColor = '#ffff00';
+            accelerometerButton.style.color = '#ffff00';
+        }
+    }
+
+    // Настройка акселерометра для бильярда
+    setupBilliardAccelerometer() {
+        // Удаляем старый обработчик если есть
+        if (this.billiardMotionHandler) {
+            window.removeEventListener('devicemotion', this.billiardMotionHandler, false);
+        }
+
+        let lastUpdate = 0;
+        const threshold = 0.2; // Уменьшенный порог для более чувствительного управления
+
+        this.billiardMotionHandler = (event) => {
             if (!this.billiardActive) return;
 
             const now = Date.now();
-            if (now - lastUpdate < 100) return; // Ограничиваем частоту обновлений
+            if (now - lastUpdate < 50) return; // Увеличиваем частоту обновлений
 
             const acceleration = event.accelerationIncludingGravity;
             if (!acceleration) return;
@@ -3073,8 +3127,9 @@ class AnonFarm {
 
             // Применяем наклон только если он достаточно сильный
             if (Math.abs(tiltX) > threshold || Math.abs(tiltY) > threshold) {
-                this.ball.vx += tiltX * 0.3;
-                this.ball.vy += tiltY * 0.3;
+                // Увеличиваем чувствительность для лучшего контроля
+                this.ball.vx += tiltX * 0.5;
+                this.ball.vy += tiltY * 0.5;
 
                 // Ограничиваем максимальную скорость
                 this.ball.vx = Math.max(-this.billiardConfig.maxSpeed, 
@@ -3082,13 +3137,17 @@ class AnonFarm {
                 this.ball.vy = Math.max(-this.billiardConfig.maxSpeed, 
                                       Math.min(this.billiardConfig.maxSpeed, this.ball.vy));
                 
-                console.log(`🎮 Акселерометр: tiltX=${tiltX.toFixed(2)}, tiltY=${tiltY.toFixed(2)}`);
+                // Логируем только при значительных изменениях
+                if (Math.abs(tiltX) > 0.5 || Math.abs(tiltY) > 0.5) {
+                    console.log(`🎮 Акселерометр бильярда: tiltX=${tiltX.toFixed(2)}, tiltY=${tiltY.toFixed(2)}`);
+                }
             }
 
             lastUpdate = now;
-        });
-        
-        console.log('✅ Акселерометр настроен');
+        };
+
+        window.addEventListener('devicemotion', this.billiardMotionHandler, false);
+        console.log('✅ Акселерометр бильярда настроен');
     }
 
     // Игровой цикл бильярда
@@ -3523,9 +3582,24 @@ class AnonFarm {
     setBilliardActive(active) {
         console.log(`🎱 Бильярд ${active ? 'активирован' : 'деактивирован'}`);
         this.billiardActive = active;
-        if (active && !this.billiardCanvas) {
-            console.log('🎱 Переинициализация бильярда...');
-            this.initBilliard();
+        
+        if (active) {
+            if (!this.billiardCanvas) {
+                console.log('🎱 Переинициализация бильярда...');
+                this.initBilliard();
+            }
+            
+            // Проверяем разрешение акселерометра при активации
+            const billiardPermission = localStorage.getItem('billiardAccelerometerPermission');
+            if (billiardPermission !== 'granted' && window.DeviceMotionEvent) {
+                console.log('🎱 Запрашиваем разрешение акселерометра при активации бильярда...');
+                setTimeout(() => {
+                    this.requestBilliardAccelerometerPermission();
+                }, 1000); // Небольшая задержка
+            }
+        } else {
+            // При деактивации можно очистить ресурсы если нужно
+            console.log('🎱 Бильярд деактивирован');
         }
     }
 
