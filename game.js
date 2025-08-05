@@ -4037,6 +4037,8 @@ class AnonFarm {
             return;
         }
 
+        console.log('🎮 Создаем PvP игру для пользователя:', this.telegramUser);
+
         try {
             const response = await fetch('https://anon-farm-api.vercel.app/api/pvp/create_game', {
                 method: 'POST',
@@ -4053,12 +4055,14 @@ class AnonFarm {
             const data = await response.json();
             
             if (data.success) {
+                console.log('✅ Игра успешно создана:', data.game);
                 this.pvpGame.currentGame = data.game;
                 this.showPvPGame();
                 this.startPvPPolling();
                 this.showNotification('🎮 Игра создана! Ожидаем противника...', 'success');
                 this.soundSystem.play('success');
             } else {
+                console.log('❌ Ошибка создания игры:', data.error);
                 this.showNotification(`❌ ${data.error}`, 'error');
                 this.soundSystem.play('error');
             }
@@ -4074,6 +4078,8 @@ class AnonFarm {
             return;
         }
 
+        console.log('🔍 Загружаем доступные игры для пользователя:', this.telegramUser);
+
         try {
             const response = await fetch('https://anon-farm-api.vercel.app/api/pvp/get_games', {
                 method: 'POST',
@@ -4088,8 +4094,10 @@ class AnonFarm {
             const data = await response.json();
             
             if (data.success) {
+                console.log('🔍 Получены доступные игры:', data.games);
                 this.displayAvailableGames(data.games);
             } else {
+                console.log('❌ Ошибка получения игр:', data.error);
                 this.showNotification(`❌ ${data.error}`, 'error');
             }
         } catch (error) {
