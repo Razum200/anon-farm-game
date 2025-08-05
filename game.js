@@ -3820,7 +3820,7 @@ class AnonFarm {
         document.getElementById('wins').textContent = this.blackjackGame.stats.wins;
         document.getElementById('losses').textContent = this.blackjackGame.stats.losses;
         document.getElementById('draws').textContent = this.blackjackGame.stats.draws;
-        document.getElementById('blackjackBalance').textContent = this.blackjackGame.stats.balance;
+        document.getElementById('blackjackBalance').textContent = this.formatNumber(this.blackjackGame.stats.balance);
 
         // Обновляем карты дилера
         this.updateCardsDisplay('dealerCards', this.blackjackGame.dealerHand, 

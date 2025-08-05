@@ -2145,7 +2145,7 @@
         .game-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: 10px;
             margin-top: 20px;
         }
 
@@ -2153,12 +2153,15 @@
             background: rgba(0,0,0,0.5);
             border: 1px solid rgba(0,255,255,0.3);
             border-radius: 10px;
-            padding: 10px;
+            padding: 8px 5px;
             text-align: center;
             color: #00ffff;
             text-shadow: 0 0 5px rgba(0,255,255,0.5);
             font-family: 'Courier New', monospace;
             font-weight: bold;
+            font-size: 0.85em;
+            word-wrap: break-word;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -2527,7 +2530,7 @@
                         <div class="stat-item">Победы: <span id="wins">0</span></div>
                         <div class="stat-item">Поражения: <span id="losses">0</span></div>
                         <div class="stat-item">Ничьи: <span id="draws">0</span></div>
-                        <div class="stat-item">Баланс: <span id="blackjackBalance">0</span> $ANON</div>
+                        <div class="stat-item">Баланс: <span id="blackjackBalance">0</span></div>
                     </div>
                 </div>
             </div>
