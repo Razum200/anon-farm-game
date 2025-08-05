@@ -196,7 +196,9 @@ def create_pvp_game(player1_id, player1_name, bet_amount):
         'deck': create_deck(),
         'state': 'waiting',  # waiting, playing, finished
         'current_turn': None,
-        'created_at': datetime.now().isoformat()
+        'created_at': datetime.now().isoformat(),
+        'player1_stood': False,
+        'player2_stood': False
     }
     
     # Снимаем ставку с баланса игрока
@@ -383,6 +385,13 @@ def make_pvp_move(game_id, player_id, action):
     elif action == 'stand':
         # Стоп
         game['current_turn'] = get_opponent_id(game, player_id)
+        
+        # Отмечаем, что игрок сделал ход "stand"
+        if game['player1']['id'] == player_id:
+            game['player1_stood'] = True
+        elif game['player2']['id'] == player_id:
+            game['player2_stood'] = True
+            
         return {'success': True, 'game': game}
     
     elif action == 'double':
@@ -798,8 +807,11 @@ class handler(BaseHTTPRequestHandler):
                     # Проверяем, нужно ли завершить игру
                     game = pvp_games.get(game_id)
                     if game and game['state'] == 'playing':
-                        # Проверяем, сделал ли второй игрок ход
-                        if game['current_turn'] == game['player1']['id'] and len(game['player1']['hand']) > 2:
+                        # Проверяем, оба ли игрока сделали ход "stand"
+                        player1_stood = len(game['player1']['hand']) > 2 and game.get('player1_stood', False)
+                        player2_stood = len(game['player2']['hand']) > 2 and game.get('player2_stood', False)
+                        
+                        if player1_stood and player2_stood:
                             # Оба игрока сделали ход, завершаем игру
                             end_pvp_game(game_id, 'normal')
                 
