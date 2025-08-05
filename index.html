@@ -1846,6 +1846,294 @@
             border-color: rgba(100,100,100,0.3);
             box-shadow: none;
         }
+
+        /* Стили для Blackjack */
+        .blackjack-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .game-mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .mode-button {
+            background: 
+                linear-gradient(45deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1)),
+                rgba(26,26,46,0.8);
+            border: 1px solid rgba(0,255,255,0.4);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #00ffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,255,255,0.5);
+            box-shadow: 
+                0 0 10px rgba(0,255,255,0.2),
+                inset 0 0 10px rgba(0,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mode-button:hover {
+            border-color: rgba(255,0,255,0.6);
+            box-shadow: 
+                0 0 20px rgba(255,0,255,0.4),
+                inset 0 0 15px rgba(255,0,255,0.1);
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255,0,255,0.8);
+        }
+
+        .mode-button.active {
+            background: 
+                linear-gradient(45deg, rgba(255,255,0,0.2), rgba(0,255,0,0.2)),
+                rgba(0,0,0,0.8);
+            border-color: #ffff00;
+            color: #ffff00;
+            text-shadow: 0 0 15px rgba(255,255,0,1);
+            box-shadow: 
+                0 0 25px rgba(255,255,0,0.5),
+                inset 0 0 20px rgba(255,255,0,0.2);
+        }
+
+        .mode-icon {
+            font-size: 1.5em;
+        }
+
+        .mode-text {
+            font-size: 0.9em;
+        }
+
+        .blackjack-table {
+            background: 
+                linear-gradient(45deg, rgba(0,255,0,0.1), rgba(0,0,0,0.8)),
+                rgba(26,26,46,0.9);
+            border: 2px solid #00ff00;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 
+                0 0 30px rgba(0,255,0,0.3),
+                inset 0 0 30px rgba(0,255,0,0.05);
+        }
+
+        .dealer-section, .player-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .player-label {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0,255,0,0.8);
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            min-height: 80px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 60px;
+            height: 80px;
+            background: 
+                linear-gradient(45deg, #ffffff, #f0f0f0);
+            border: 2px solid #000000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #000000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card.red {
+            color: #ff0000;
+        }
+
+        .card.hidden {
+            background: 
+                linear-gradient(45deg, #000000, #333333);
+            color: transparent;
+            border-color: #666666;
+        }
+
+        .score-display {
+            font-size: 1.1em;
+            color: #ffff00;
+            text-shadow: 0 0 10px rgba(255,255,0,0.8);
+            font-weight: bold;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .bet-section {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #ff00ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .bet-label {
+            font-size: 1.1em;
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255,0,255,0.8);
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .bet-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .bet-button {
+            background: 
+                linear-gradient(45deg, rgba(255,0,255,0.2), rgba(0,255,255,0.2)),
+                rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,0,255,0.4);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: #ff00ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255,0,255,0.5);
+            box-shadow: 
+                0 0 10px rgba(255,0,255,0.3),
+                inset 0 0 10px rgba(255,0,255,0.1);
+        }
+
+        .bet-button:hover {
+            border-color: rgba(0,255,255,0.8);
+            box-shadow: 
+                0 0 20px rgba(0,255,255,0.5),
+                inset 0 0 15px rgba(0,255,255,0.2);
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0,255,255,0.8);
+            transform: scale(1.1);
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .game-button {
+            background: 
+                linear-gradient(45deg, rgba(0,255,0,0.2), rgba(255,255,0,0.2)),
+                rgba(0,0,0,0.7);
+            border: 1px solid rgba(0,255,0,0.4);
+            border-radius: 15px;
+            padding: 12px 20px;
+            color: #00ff00;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,255,0,0.5);
+            box-shadow: 
+                0 0 10px rgba(0,255,0,0.3),
+                inset 0 0 10px rgba(0,255,0,0.1);
+        }
+
+        .game-button:hover {
+            border-color: rgba(255,255,0,0.8);
+            box-shadow: 
+                0 0 20px rgba(255,255,0,0.5),
+                inset 0 0 15px rgba(255,255,0,0.2);
+            color: #ffff00;
+            text-shadow: 0 0 10px rgba(255,255,0,0.8);
+            transform: scale(1.05);
+        }
+
+        .game-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            border-color: rgba(100,100,100,0.3);
+            box-shadow: none;
+        }
+
+        .game-result {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #ffff00;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ffff00;
+            text-shadow: 0 0 15px rgba(255,255,0,1);
+            box-shadow: 
+                0 0 25px rgba(255,255,0,0.5),
+                inset 0 0 20px rgba(255,255,0,0.2);
+            animation: resultGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes resultGlow {
+            0% { 
+                border-color: #ffff00;
+                box-shadow: 
+                    0 0 25px rgba(255,255,0,0.5),
+                    inset 0 0 20px rgba(255,255,0,0.2);
+            }
+            100% { 
+                border-color: #ff00ff;
+                box-shadow: 
+                    0 0 35px rgba(255,0,255,0.7),
+                    inset 0 0 30px rgba(255,0,255,0.3);
+            }
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            color: #00ffff;
+            text-shadow: 0 0 5px rgba(0,255,255,0.5);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -2151,6 +2439,73 @@
             </div>
         </div>
 
+        <!-- Страница Blackjack -->
+        <div class="page" id="blackjackPage">
+            <header class="header">
+                <div class="logo glitch text-flicker" data-text="🃏 КИБЕР 21">🃏 КИБЕР 21</div>
+                <div class="subtitle typing-text matrix-text">Играй в Blackjack против бота или других игроков</div>
+            </header>
+
+            <div class="blackjack-container">
+                <!-- Выбор режима -->
+                <div class="game-mode-selector">
+                    <button class="mode-button active" data-mode="bot">
+                        <span class="mode-icon">🤖</span>
+                        <span class="mode-text">Против бота</span>
+                    </button>
+                    <button class="mode-button" data-mode="pvp">
+                        <span class="mode-icon">👥</span>
+                        <span class="mode-text">PvP (скоро)</span>
+                    </button>
+                </div>
+
+                <!-- Игровое поле -->
+                <div class="blackjack-table">
+                    <!-- Дилер -->
+                    <div class="dealer-section">
+                        <div class="player-label">🤖 Дилер</div>
+                        <div class="cards-container" id="dealerCards"></div>
+                        <div class="score-display" id="dealerScore">Очки: 0</div>
+                    </div>
+
+                    <!-- Игрок -->
+                    <div class="player-section">
+                        <div class="player-label">👤 Игрок</div>
+                        <div class="cards-container" id="playerCards"></div>
+                        <div class="score-display" id="playerScore">Очки: 0</div>
+                    </div>
+
+                    <!-- Ставка -->
+                    <div class="bet-section">
+                        <div class="bet-label">💰 Ставка: <span id="currentBet">10</span> $ANON</div>
+                        <div class="bet-controls">
+                            <button class="bet-button" data-action="decrease">-</button>
+                            <button class="bet-button" data-action="increase">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки действий -->
+                    <div class="game-controls">
+                        <button class="game-button" id="dealButton">🎯 Начать игру</button>
+                        <button class="game-button" id="hitButton" style="display: none;">📈 Взять карту</button>
+                        <button class="game-button" id="standButton" style="display: none;">✋ Хватит</button>
+                        <button class="game-button" id="doubleButton" style="display: none;">💎 Удвоить</button>
+                    </div>
+
+                    <!-- Результат -->
+                    <div class="game-result" id="gameResult" style="display: none;"></div>
+
+                    <!-- Статистика -->
+                    <div class="game-stats">
+                        <div class="stat-item">Победы: <span id="wins">0</span></div>
+                        <div class="stat-item">Поражения: <span id="losses">0</span></div>
+                        <div class="stat-item">Ничьи: <span id="draws">0</span></div>
+                        <div class="stat-item">Баланс: <span id="blackjackBalance">0</span> $ANON</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Нижняя навигация -->
         <div class="bottom-navigation">
             <button class="nav-tab active" data-page="farm">
@@ -2176,6 +2531,10 @@
             <button class="nav-tab" data-page="billiard">
                 <span class="nav-icon">🎱</span>
                 <span class="nav-text">Бильярд</span>
+            </button>
+            <button class="nav-tab" data-page="blackjack">
+                <span class="nav-icon">🃏</span>
+                <span class="nav-text">21</span>
             </button>
         </div>
 

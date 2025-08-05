@@ -1107,6 +1107,9 @@ class AnonFarm {
         // Инициализируем бильярд
         this.initBilliard();
         
+        // Инициализируем Blackjack
+        this.initBlackjack();
+        
         // Запускаем автоферму
         this.startAutoFarm();
         
@@ -2452,7 +2455,8 @@ class AnonFarm {
                 leaderboard: '> CONNECTING TO GLOBAL RANKING SYSTEM...',
                 profile: '> ANALYZING USER DATA PATTERNS...',
                 garden: '> CYBER GARDEN INTERFACE ACTIVE...',
-                billiard: '> INITIALIZING CYBER BILLIARD SYSTEM...'
+                billiard: '> INITIALIZING CYBER BILLIARD SYSTEM...',
+                blackjack: '> LAUNCHING CYBER CASINO MODULE...'
             };
             
             if (pageMessages[pageName]) {
@@ -2469,6 +2473,8 @@ class AnonFarm {
                 this.updateGardenDisplay();
             } else if (pageName === 'billiard') {
                 this.setBilliardActive(true);
+            } else if (pageName === 'blackjack') {
+                this.updateBlackjackDisplay();
             } else {
                 // Деактивируем бильярд при переходе на другие страницы
                 this.setBilliardActive(false);
@@ -3478,6 +3484,405 @@ class AnonFarm {
         if (active && !this.billiardCanvas) {
             console.log('🎱 Переинициализация бильярда...');
             this.initBilliard();
+        }
+    }
+
+    // Инициализация Blackjack
+    initBlackjack() {
+        console.log('🃏 Инициализация Blackjack...');
+        
+        this.blackjackGame = {
+            deck: [],
+            playerHand: [],
+            dealerHand: [],
+            currentBet: 10,
+            gameState: 'waiting', // waiting, playing, dealerTurn, finished
+            stats: {
+                wins: 0,
+                losses: 0,
+                draws: 0,
+                balance: 0
+            }
+        };
+
+        this.createDeck();
+        this.setupBlackjackEventListeners();
+        this.updateBlackjackDisplay();
+        
+        console.log('✅ Blackjack инициализирован успешно');
+    }
+
+    // Создание колоды
+    createDeck() {
+        this.blackjackGame.deck = [];
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        
+        for (let suit of suits) {
+            for (let value of values) {
+                this.blackjackGame.deck.push({
+                    suit: suit,
+                    value: value,
+                    isRed: suit === '♥' || suit === '♦'
+                });
+            }
+        }
+        
+        // Перемешиваем колоду
+        this.shuffleDeck();
+    }
+
+    // Перемешивание колоды
+    shuffleDeck() {
+        for (let i = this.blackjackGame.deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.blackjackGame.deck[i], this.blackjackGame.deck[j]] = 
+            [this.blackjackGame.deck[j], this.blackjackGame.deck[i]];
+        }
+    }
+
+    // Настройка обработчиков событий
+    setupBlackjackEventListeners() {
+        // Кнопки ставок
+        document.querySelectorAll('.bet-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const action = e.target.dataset.action;
+                if (action === 'increase') {
+                    this.increaseBet();
+                } else if (action === 'decrease') {
+                    this.decreaseBet();
+                }
+            });
+        });
+
+        // Кнопки игры
+        document.getElementById('dealButton').addEventListener('click', () => this.dealCards());
+        document.getElementById('hitButton').addEventListener('click', () => this.hit());
+        document.getElementById('standButton').addEventListener('click', () => this.stand());
+        document.getElementById('doubleButton').addEventListener('click', () => this.double());
+
+        // Выбор режима
+        document.querySelectorAll('.mode-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
+                e.target.closest('.mode-button').classList.add('active');
+                this.soundSystem.play('navigation');
+            });
+        });
+    }
+
+    // Увеличение ставки
+    increaseBet() {
+        if (this.blackjackGame.currentBet < 100 && this.blackjackGame.currentBet < this.gameData.tokens) {
+            this.blackjackGame.currentBet += 10;
+            this.updateBlackjackDisplay();
+            this.soundSystem.play('click');
+        }
+    }
+
+    // Уменьшение ставки
+    decreaseBet() {
+        if (this.blackjackGame.currentBet > 10) {
+            this.blackjackGame.currentBet -= 10;
+            this.updateBlackjackDisplay();
+            this.soundSystem.play('click');
+        }
+    }
+
+    // Раздача карт
+    dealCards() {
+        if (this.blackjackGame.gameState !== 'waiting') return;
+        
+        // Проверяем баланс
+        if (this.gameData.tokens < this.blackjackGame.currentBet) {
+            this.showNotification('❌ Недостаточно $ANON для ставки!', 'error');
+            return;
+        }
+
+        // Снимаем ставку с баланса
+        this.gameData.tokens -= this.blackjackGame.currentBet;
+        this.blackjackGame.stats.balance -= this.blackjackGame.currentBet;
+
+        // Создаем новую колоду если нужно
+        if (this.blackjackGame.deck.length < 10) {
+            this.createDeck();
+        }
+
+        // Очищаем руки
+        this.blackjackGame.playerHand = [];
+        this.blackjackGame.dealerHand = [];
+
+        // Раздаем карты
+        this.blackjackGame.playerHand.push(this.drawCard());
+        this.blackjackGame.dealerHand.push(this.drawCard());
+        this.blackjackGame.playerHand.push(this.drawCard());
+        this.blackjackGame.dealerHand.push(this.drawCard());
+
+        this.blackjackGame.gameState = 'playing';
+        this.updateBlackjackDisplay();
+        this.updateGameButtons();
+        this.soundSystem.play('success');
+        
+        // Проверяем Blackjack
+        if (this.calculateHandValue(this.blackjackGame.playerHand) === 21) {
+            this.stand();
+        }
+    }
+
+    // Взять карту
+    hit() {
+        if (this.blackjackGame.gameState !== 'playing') return;
+
+        this.blackjackGame.playerHand.push(this.drawCard());
+        this.updateBlackjackDisplay();
+
+        const playerValue = this.calculateHandValue(this.blackjackGame.playerHand);
+        if (playerValue > 21) {
+            this.endGame('bust');
+        } else if (playerValue === 21) {
+            this.stand();
+        }
+
+        this.soundSystem.play('click');
+    }
+
+    // Хватит
+    stand() {
+        if (this.blackjackGame.gameState !== 'playing') return;
+
+        this.blackjackGame.gameState = 'dealerTurn';
+        this.updateGameButtons();
+        this.updateBlackjackDisplay();
+
+        // Дилер играет
+        setTimeout(() => this.dealerPlay(), 1000);
+    }
+
+    // Удвоить
+    double() {
+        if (this.blackjackGame.gameState !== 'playing' || this.blackjackGame.playerHand.length !== 2) return;
+        
+        // Проверяем баланс для удвоения
+        if (this.gameData.tokens < this.blackjackGame.currentBet) {
+            this.showNotification('❌ Недостаточно $ANON для удвоения!', 'error');
+            return;
+        }
+
+        // Удваиваем ставку
+        this.gameData.tokens -= this.blackjackGame.currentBet;
+        this.blackjackGame.stats.balance -= this.blackjackGame.currentBet;
+        this.blackjackGame.currentBet *= 2;
+
+        // Берем одну карту
+        this.hit();
+        if (this.blackjackGame.gameState === 'playing') {
+            this.stand();
+        }
+    }
+
+    // Игра дилера
+    dealerPlay() {
+        const dealerValue = this.calculateHandValue(this.blackjackGame.dealerHand);
+        const playerValue = this.calculateHandValue(this.blackjackGame.playerHand);
+
+        if (dealerValue < 17) {
+            this.blackjackGame.dealerHand.push(this.drawCard());
+            this.updateBlackjackDisplay();
+            setTimeout(() => this.dealerPlay(), 1000);
+        } else {
+            this.endGame(this.determineWinner(playerValue, dealerValue));
+        }
+    }
+
+    // Определение победителя
+    determineWinner(playerValue, dealerValue) {
+        if (playerValue > 21) return 'bust';
+        if (dealerValue > 21) return 'win';
+        if (playerValue > dealerValue) return 'win';
+        if (dealerValue > playerValue) return 'lose';
+        return 'draw';
+    }
+
+    // Завершение игры
+    endGame(result) {
+        this.blackjackGame.gameState = 'finished';
+        this.updateGameButtons();
+        this.updateBlackjackDisplay();
+
+        let message = '';
+        let tokensWon = 0;
+
+        switch (result) {
+            case 'win':
+                message = '🎉 Победа!';
+                tokensWon = this.blackjackGame.currentBet * 2;
+                this.blackjackGame.stats.wins++;
+                this.soundSystem.play('levelUp');
+                break;
+            case 'lose':
+                message = '💀 Поражение';
+                this.blackjackGame.stats.losses++;
+                this.soundSystem.play('error');
+                break;
+            case 'draw':
+                message = '🤝 Ничья';
+                tokensWon = this.blackjackGame.currentBet;
+                this.blackjackGame.stats.draws++;
+                this.soundSystem.play('notification');
+                break;
+            case 'bust':
+                message = '💥 Перебор!';
+                this.blackjackGame.stats.losses++;
+                this.soundSystem.play('error');
+                break;
+        }
+
+        if (tokensWon > 0) {
+            this.gameData.tokens += tokensWon;
+            this.blackjackGame.stats.balance += tokensWon;
+            message += ` +${tokensWon} $ANON`;
+        }
+
+        this.showGameResult(message);
+        this.updateDisplay();
+        this.updateBlackjackDisplay();
+
+        // Сброс через 3 секунды
+        setTimeout(() => {
+            this.blackjackGame.gameState = 'waiting';
+            this.blackjackGame.currentBet = 10;
+            this.updateGameButtons();
+            this.updateBlackjackDisplay();
+        }, 3000);
+    }
+
+    // Показать результат
+    showGameResult(message) {
+        const resultElement = document.getElementById('gameResult');
+        resultElement.textContent = message;
+        resultElement.style.display = 'block';
+        
+        setTimeout(() => {
+            resultElement.style.display = 'none';
+        }, 3000);
+    }
+
+    // Взять карту из колоды
+    drawCard() {
+        return this.blackjackGame.deck.pop();
+    }
+
+    // Подсчет очков руки
+    calculateHandValue(hand) {
+        let value = 0;
+        let aces = 0;
+
+        for (let card of hand) {
+            if (card.value === 'A') {
+                aces++;
+                value += 11;
+            } else if (['K', 'Q', 'J'].includes(card.value)) {
+                value += 10;
+            } else {
+                value += parseInt(card.value);
+            }
+        }
+
+        // Корректируем тузы
+        while (value > 21 && aces > 0) {
+            value -= 10;
+            aces--;
+        }
+
+        return value;
+    }
+
+    // Обновление отображения
+    updateBlackjackDisplay() {
+        // Обновляем ставку
+        document.getElementById('currentBet').textContent = this.blackjackGame.currentBet;
+        
+        // Обновляем статистику
+        document.getElementById('wins').textContent = this.blackjackGame.stats.wins;
+        document.getElementById('losses').textContent = this.blackjackGame.stats.losses;
+        document.getElementById('draws').textContent = this.blackjackGame.stats.draws;
+        document.getElementById('blackjackBalance').textContent = this.blackjackGame.stats.balance;
+
+        // Обновляем карты дилера
+        this.updateCardsDisplay('dealerCards', this.blackjackGame.dealerHand, 
+            this.blackjackGame.gameState === 'playing');
+
+        // Обновляем карты игрока
+        this.updateCardsDisplay('playerCards', this.blackjackGame.playerHand, false);
+
+        // Обновляем очки
+        const dealerValue = this.calculateHandValue(this.blackjackGame.dealerHand);
+        const playerValue = this.calculateHandValue(this.blackjackGame.playerHand);
+
+        if (this.blackjackGame.gameState === 'playing') {
+            document.getElementById('dealerScore').textContent = `Очки: ${dealerValue - (this.blackjackGame.dealerHand[1]?.value === 'A' ? 11 : this.getCardValue(this.blackjackGame.dealerHand[1]))}`;
+        } else {
+            document.getElementById('dealerScore').textContent = `Очки: ${dealerValue}`;
+        }
+        
+        document.getElementById('playerScore').textContent = `Очки: ${playerValue}`;
+    }
+
+    // Обновление отображения карт
+    updateCardsDisplay(containerId, hand, hideSecond) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        hand.forEach((card, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.className = `card ${card.isRed ? 'red' : ''}`;
+            
+            if (hideSecond && index === 1) {
+                cardElement.classList.add('hidden');
+                cardElement.textContent = '?';
+            } else {
+                cardElement.textContent = `${card.value}${card.suit}`;
+            }
+            
+            container.appendChild(cardElement);
+        });
+    }
+
+    // Получить значение карты
+    getCardValue(card) {
+        if (!card) return 0;
+        if (card.value === 'A') return 11;
+        if (['K', 'Q', 'J'].includes(card.value)) return 10;
+        return parseInt(card.value);
+    }
+
+    // Обновление кнопок игры
+    updateGameButtons() {
+        const dealButton = document.getElementById('dealButton');
+        const hitButton = document.getElementById('hitButton');
+        const standButton = document.getElementById('standButton');
+        const doubleButton = document.getElementById('doubleButton');
+
+        switch (this.blackjackGame.gameState) {
+            case 'waiting':
+                dealButton.style.display = 'inline-block';
+                hitButton.style.display = 'none';
+                standButton.style.display = 'none';
+                doubleButton.style.display = 'none';
+                break;
+            case 'playing':
+                dealButton.style.display = 'none';
+                hitButton.style.display = 'inline-block';
+                standButton.style.display = 'inline-block';
+                doubleButton.style.display = this.blackjackGame.playerHand.length === 2 ? 'inline-block' : 'none';
+                break;
+            case 'dealerTurn':
+            case 'finished':
+                dealButton.style.display = 'none';
+                hitButton.style.display = 'none';
+                standButton.style.display = 'none';
+                doubleButton.style.display = 'none';
+                break;
         }
     }
 }
