@@ -1414,6 +1414,11 @@ class AnonFarm {
                 this.showNotification('📱 Тряска телефона активирована!', 'success');
                 this.initShakeDetection(true);
             }
+            
+            // Обновляем состояние кнопки после запроса
+            setTimeout(() => {
+                this.updateShakeToggleState();
+            }, 1000);
         });
     }
     
@@ -1423,9 +1428,11 @@ class AnonFarm {
         if (!shakeToggle) return;
         
         const isEnabled = localStorage.getItem('shakeEnabled') !== 'false';
+        const permission = localStorage.getItem('shakePermission');
         
         console.log('🔧 Обновление состояния SHAKE кнопки:', {
             isEnabled,
+            permission,
             localStorage: localStorage.getItem('shakeEnabled'),
             savedPermission: localStorage.getItem('shakePermission')
         });
@@ -1433,9 +1440,19 @@ class AnonFarm {
         if (isEnabled) {
             shakeToggle.classList.add('active');
             shakeToggle.classList.remove('disabled');
+            
+            // Обновляем текст кнопки в зависимости от разрешения
+            if (permission === 'granted') {
+                shakeToggle.querySelector('.shake-text').textContent = 'SHAKE ВКЛ';
+            } else if (permission === 'denied') {
+                shakeToggle.querySelector('.shake-text').textContent = 'SHAKE ОТКЛ';
+            } else {
+                shakeToggle.querySelector('.shake-text').textContent = 'SHAKE';
+            }
         } else {
             shakeToggle.classList.remove('active');
             shakeToggle.classList.add('disabled');
+            shakeToggle.querySelector('.shake-text').textContent = 'SHAKE ВЫКЛ';
         }
     }
 
@@ -1597,11 +1614,13 @@ class AnonFarm {
                                 localStorage.setItem('shakePermission', 'granted');
                                 console.log('📱 Разрешение на тряску получено!');
                                 this.showNotification('📱 Тряска телефона активирована!', 'success');
+                                this.updateShakeToggleState();
                             } else {
                                 localStorage.setItem('shakePermission', 'denied');
                                 console.log('📱 Разрешение на тряску отклонено');
                                 this.showNotification('📱 Разрешение отклонено. Нажмите SHAKE еще раз для повторного запроса.', 'info');
                                 this.showIPhonePermissionInstructions();
+                                this.updateShakeToggleState();
                             }
                         })
                         .catch(console.error);
@@ -1623,6 +1642,7 @@ class AnonFarm {
             // Android и другие устройства - работают сразу
             window.addEventListener('devicemotion', this.handleMotion, false);
             console.log('📱 Детекция тряски активирована!');
+            this.updateShakeToggleState();
         }
     }
 
