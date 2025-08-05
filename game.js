@@ -989,8 +989,25 @@ class AnonFarm {
             
             console.log('Telegram Web App инициализировано');
             console.log('Пользователь:', this.tg.initDataUnsafe?.user);
+            
+            // Получаем пользователя из Telegram
+            this.telegramUser = this.tg.initDataUnsafe?.user;
         } else {
             console.log('Запущено вне Telegram');
+        }
+        
+        // Временный пользователь для тестирования (если Telegram не работает)
+        if (!this.telegramUser) {
+            this.telegramUser = {
+                id: 123456789,
+                first_name: 'Тест Игрок',
+                username: 'test_player'
+            };
+            console.log('🔧 Используем тестового пользователя:', this.telegramUser);
+            this.showNotification('🔧 Тестовый режим: используем временного пользователя', 'info');
+            
+            // Добавляем тестового пользователя в статистику с балансом
+            this.sendPlayerStats();
         }
     }
 
