@@ -3551,6 +3551,8 @@ class AnonFarm {
                     this.increaseBet();
                 } else if (action === 'decrease') {
                     this.decreaseBet();
+                } else if (action === 'max') {
+                    this.maxBet();
                 }
             });
         });
@@ -3573,7 +3575,8 @@ class AnonFarm {
 
     // Увеличение ставки
     increaseBet() {
-        if (this.blackjackGame.currentBet < 100 && this.blackjackGame.currentBet < this.gameData.tokens) {
+        const maxBet = Math.min(1000000, this.gameData.tokens);
+        if (this.blackjackGame.currentBet < maxBet) {
             this.blackjackGame.currentBet += 10;
             this.updateBlackjackDisplay();
             this.soundSystem.play('click');
@@ -3586,6 +3589,17 @@ class AnonFarm {
             this.blackjackGame.currentBet -= 10;
             this.updateBlackjackDisplay();
             this.soundSystem.play('click');
+        }
+    }
+
+    // Максимальная ставка
+    maxBet() {
+        const maxBet = Math.min(1000000, this.gameData.tokens);
+        if (this.blackjackGame.currentBet !== maxBet) {
+            this.blackjackGame.currentBet = maxBet;
+            this.updateBlackjackDisplay();
+            this.soundSystem.play('success');
+            this.showNotification(`💰 Максимальная ставка: ${this.formatNumber(maxBet)} $ANON`, 'info');
         }
     }
 
