@@ -1913,117 +1913,7 @@
             font-size: 0.9em;
         }
 
-        /* PvP стили */
-        .pvp-interface {
-            margin-top: 20px;
-        }
 
-        .pvp-create-game, .pvp-find-games {
-            background: rgba(26, 26, 46, 0.8);
-            border: 2px solid #00ffff;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .pvp-create-game h3, .pvp-find-games h3 {
-            color: #00ffff;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .pvp-bet-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(0, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .pvp-bet-controls label {
-            color: #00ffff;
-            font-weight: bold;
-        }
-
-        .available-games {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .game-item {
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid #00ffff;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .game-item:hover {
-            background: rgba(0, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .game-item .player-name {
-            color: #00ffff;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .game-item .bet-amount {
-            color: #ffff00;
-            font-size: 0.9em;
-        }
-
-        .game-item .created-time {
-            color: #888;
-            font-size: 0.8em;
-        }
-
-        .no-games {
-            text-align: center;
-            color: #888;
-            padding: 20px;
-        }
-
-        .pvp-active-game {
-            background: rgba(26, 26, 46, 0.9);
-            border: 2px solid #00ffff;
-            border-radius: 15px;
-            padding: 20px;
-        }
-
-        .pvp-player-info {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .pvp-player {
-            flex: 1;
-            text-align: center;
-        }
-
-        .pvp-game-status {
-            text-align: center;
-            color: #00ffff;
-            font-weight: bold;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(0, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .pvp-game-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
 
         .blackjack-table {
             background: 
@@ -2588,66 +2478,12 @@
             </header>
 
             <div class="blackjack-container">
-                <!-- Выбор режима -->
+                <!-- Игра против бота -->
                 <div class="game-mode-selector">
                     <button class="mode-button active" data-mode="bot">
                         <span class="mode-icon">🤖</span>
                         <span class="mode-text">Против бота</span>
                     </button>
-                    <button class="mode-button" data-mode="pvp">
-                        <span class="mode-icon">👥</span>
-                        <span class="mode-text">PvP</span>
-                    </button>
-                </div>
-
-                <!-- PvP интерфейс -->
-                <div class="pvp-interface" style="display: none;">
-                    <!-- Создание игры -->
-                    <div class="pvp-create-game">
-                        <h3>🎮 Создать игру</h3>
-                        <div class="pvp-bet-controls">
-                            <label>Ставка: <span id="pvpBetAmount">10</span> $ANON</label>
-                            <div class="bet-controls">
-                                <button class="bet-button" data-action="pvp-decrease">-</button>
-                                <button class="bet-button" data-action="pvp-increase">+</button>
-                                <button class="bet-button max-button" data-action="pvp-max">MAX</button>
-                            </div>
-                        </div>
-                        <button class="game-button" id="createPvpGame">🎯 Создать игру</button>
-                    </div>
-
-                    <!-- Поиск игр -->
-                    <div class="pvp-find-games">
-                        <h3>🔍 Найти игру</h3>
-                        <button class="game-button" id="refreshGames">🔄 Обновить</button>
-                        <div class="available-games" id="availableGames">
-                            <div class="no-games">Нет доступных игр</div>
-                        </div>
-                    </div>
-
-                    <!-- Активная PvP игра -->
-                    <div class="pvp-active-game" style="display: none;">
-                        <div class="pvp-game-info">
-                            <div class="pvp-player-info">
-                                <div class="pvp-player">
-                                    <div class="player-label">👤 <span id="pvpPlayer1Name">Игрок 1</span></div>
-                                    <div class="cards-container" id="pvpPlayer1Cards"></div>
-                                    <div class="score-display" id="pvpPlayer1Score">Очки: 0</div>
-                                </div>
-                                <div class="pvp-player">
-                                    <div class="player-label">👤 <span id="pvpPlayer2Name">Игрок 2</span></div>
-                                    <div class="cards-container" id="pvpPlayer2Cards"></div>
-                                    <div class="score-display" id="pvpPlayer2Score">Очки: 0</div>
-                                </div>
-                            </div>
-                            <div class="pvp-game-status" id="pvpGameStatus">Ожидание...</div>
-                            <div class="pvp-game-controls">
-                                <button class="game-button" id="pvpHitButton" style="display: none;">📈 Взять карту</button>
-                                <button class="game-button" id="pvpStandButton" style="display: none;">✋ Хватит</button>
-                                <button class="game-button" id="pvpDoubleButton" style="display: none;">💎 Удвоить</button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Игровое поле -->

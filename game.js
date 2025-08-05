@@ -1123,7 +1123,6 @@ class AnonFarm {
         
         // Инициализируем Blackjack
         this.initBlackjack();
-        this.initPvP();
         
         // Запускаем автоферму
         this.startAutoFarm();
@@ -3027,19 +3026,43 @@ class AnonFarm {
         }
 
         // Акселерометр для мобильных устройств
-        if (!window.DeviceMotionEvent) {
-            console.log('Акселерометр не поддерживается');
-            return;
+        if (window.DeviceMotionEvent) {
+            console.log('🎮 Акселерометр поддерживается, запрашиваем разрешение...');
+            
+            // Запрашиваем разрешение на использование акселерометра
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                console.log('🎮 Запрашиваем разрешение на акселерометр...');
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            console.log('✅ Разрешение на акселерометр получено');
+                            this.setupAccelerometer();
+                        } else {
+                            console.log('❌ Разрешение на акселерометр отклонено');
+                        }
+                    })
+                    .catch(err => {
+                        console.log('❌ Ошибка запроса разрешения акселерометра:', err);
+                    });
+            } else {
+                console.log('🎮 Разрешение не требуется, настраиваем акселерометр...');
+                this.setupAccelerometer();
+            }
+        } else {
+            console.log('❌ Акселерометр не поддерживается');
         }
+    }
 
+    // Настройка акселерометра
+    setupAccelerometer() {
         let lastUpdate = 0;
-        const threshold = 0.5;
+        const threshold = 0.3;
 
         window.addEventListener('devicemotion', (event) => {
             if (!this.billiardActive) return;
 
             const now = Date.now();
-            if (now - lastUpdate < 50) return; // Ограничиваем частоту обновлений
+            if (now - lastUpdate < 100) return; // Ограничиваем частоту обновлений
 
             const acceleration = event.accelerationIncludingGravity;
             if (!acceleration) return;
@@ -3050,18 +3073,22 @@ class AnonFarm {
 
             // Применяем наклон только если он достаточно сильный
             if (Math.abs(tiltX) > threshold || Math.abs(tiltY) > threshold) {
-                this.ball.vx += tiltX * 0.5;
-                this.ball.vy += tiltY * 0.5;
+                this.ball.vx += tiltX * 0.3;
+                this.ball.vy += tiltY * 0.3;
 
                 // Ограничиваем максимальную скорость
                 this.ball.vx = Math.max(-this.billiardConfig.maxSpeed, 
                                       Math.min(this.billiardConfig.maxSpeed, this.ball.vx));
                 this.ball.vy = Math.max(-this.billiardConfig.maxSpeed, 
                                       Math.min(this.billiardConfig.maxSpeed, this.ball.vy));
+                
+                console.log(`🎮 Акселерометр: tiltX=${tiltX.toFixed(2)}, tiltY=${tiltY.toFixed(2)}`);
             }
 
             lastUpdate = now;
         });
+        
+        console.log('✅ Акселерометр настроен');
     }
 
     // Игровой цикл бильярда
@@ -3915,20 +3942,7 @@ class AnonFarm {
         }
     }
 
-    // PvP функциональность
-    initPvP() {
-        console.log('🎮 Инициализация PvP режима...');
-        
-        this.pvpGame = {
-            currentGame: null,
-            currentBet: 10,
-            gameMode: 'bot', // bot или pvp
-            pollingInterval: null
-        };
 
-        this.setupPvPEventListeners();
-        console.log('✅ PvP режим инициализирован');
-    }
 
     setupPvPEventListeners() {
         // Переключение режимов
