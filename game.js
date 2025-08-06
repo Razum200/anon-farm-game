@@ -1357,10 +1357,27 @@ class AnonFarm {
         farmAccelerometerBtn.id = 'farmAccelerometerBtn';
         farmAccelerometerBtn.className = 'farm-accelerometer-button';
         farmAccelerometerBtn.innerHTML = `
-            <span class="accelerometer-icon">📱</span>
-            <span class="accelerometer-text">Акселерометр</span>
+            <span class="accelerometer-icon">🔧</span>
         `;
-        farmAccelerometerBtn.title = 'Управление акселерометром бильярда';
+        farmAccelerometerBtn.title = 'Управление акселерометром';
+        
+        // Добавляем неоновый эффект
+        farmAccelerometerBtn.style.cssText = `
+            background: linear-gradient(45deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 0 15px #00ffff40, inset 0 0 15px #00ffff10;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
         buttonContainer.appendChild(farmAccelerometerBtn);
         
         farmButton.parentNode.insertBefore(buttonContainer, farmButton.nextSibling);
@@ -1429,17 +1446,23 @@ class AnonFarm {
         const permission = localStorage.getItem('billiardAccelerometerPermission');
         
         if (permission === 'granted') {
-            farmAccelerometerBtn.querySelector('.accelerometer-text').textContent = 'Акселерометр ВКЛ';
+            // Зеленый неоновый эффект для включенного состояния
             farmAccelerometerBtn.style.borderColor = '#00ff00';
             farmAccelerometerBtn.style.color = '#00ff00';
+            farmAccelerometerBtn.style.boxShadow = '0 0 20px #00ff0040, inset 0 0 20px #00ff0010';
+            farmAccelerometerBtn.style.background = 'linear-gradient(45deg, rgba(0,255,0,0.1), rgba(0,255,255,0.1))';
         } else if (permission === 'denied') {
-            farmAccelerometerBtn.querySelector('.accelerometer-text').textContent = 'Акселерометр ОТКЛ';
+            // Красный неоновый эффект для отключенного состояния
             farmAccelerometerBtn.style.borderColor = '#ff0000';
             farmAccelerometerBtn.style.color = '#ff0000';
+            farmAccelerometerBtn.style.boxShadow = '0 0 20px #ff000040, inset 0 0 20px #ff000010';
+            farmAccelerometerBtn.style.background = 'linear-gradient(45deg, rgba(255,0,0,0.1), rgba(255,0,255,0.1))';
         } else {
-            farmAccelerometerBtn.querySelector('.accelerometer-text').textContent = 'Акселерометр';
+            // Желтый неоновый эффект для неопределенного состояния
             farmAccelerometerBtn.style.borderColor = '#ffff00';
             farmAccelerometerBtn.style.color = '#ffff00';
+            farmAccelerometerBtn.style.boxShadow = '0 0 20px #ffff0040, inset 0 0 20px #ffff0010';
+            farmAccelerometerBtn.style.background = 'linear-gradient(45deg, rgba(255,255,0,0.1), rgba(255,0,255,0.1))';
         }
     }
 
@@ -3117,7 +3140,7 @@ class AnonFarm {
                         localStorage.setItem('shakePermission', 'granted');
                         console.log('✅ Разрешение на акселерометр бильярда получено');
                         this.setupBilliardAccelerometer();
-                        this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
+                        this.showNotification('📱 Акселерометр включен!', 'success');
                         this.updateAccelerometerButton();
                         this.updateShakeToggleState();
                         this.updateFarmAccelerometerButton();
@@ -3142,7 +3165,7 @@ class AnonFarm {
             localStorage.setItem('billiardAccelerometerPermission', 'granted');
             localStorage.setItem('shakePermission', 'granted');
             this.setupBilliardAccelerometer();
-            this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
+            this.showNotification('📱 Акселерометр включен!', 'success');
             this.updateAccelerometerButton();
             this.updateShakeToggleState();
             this.updateFarmAccelerometerButton();
