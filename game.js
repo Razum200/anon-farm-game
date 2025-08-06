@@ -1386,11 +1386,25 @@ class AnonFarm {
                 console.log('🔧 Включаем тряску, вызываем initShakeDetection(true)');
                 // Переинициализируем детекцию тряски с возможностью запроса разрешения
                 this.initShakeDetection(true);
+                
+                // Также активируем акселерометр для бильярда если разрешение уже есть
+                const permission = localStorage.getItem('shakePermission');
+                if (permission === 'granted') {
+                    console.log('🔧 Разрешение уже есть, активируем акселерометр бильярда');
+                    this.setupBilliardAccelerometer();
+                    this.updateAccelerometerButton();
+                }
             } else {
                 this.showNotification('📱 Тряска телефона отключена!', 'info');
                 console.log('🔧 Отключаем тряску, удаляем event listener');
                 // Удаляем слушатель событий тряски при отключении
                 window.removeEventListener('devicemotion', this.handleMotion);
+                
+                // Также отключаем акселерометр бильярда
+                if (this.billiardMotionHandler) {
+                    window.removeEventListener('devicemotion', this.billiardMotionHandler, false);
+                }
+                this.updateAccelerometerButton();
             }
         });
         
@@ -1618,6 +1632,10 @@ class AnonFarm {
                                 this.showNotification('📱 Тряска телефона активирована!', 'success');
                                 this.updateShakeToggleState();
                                 this.updateAccelerometerButton();
+                                
+                                // Автоматически активируем акселерометр для бильярда
+                                console.log('🔧 Автоматически активируем акселерометр бильярда');
+                                this.setupBilliardAccelerometer();
                             } else {
                                 localStorage.setItem('shakePermission', 'denied');
                                 localStorage.setItem('billiardAccelerometerPermission', 'denied');
@@ -1651,6 +1669,10 @@ class AnonFarm {
             console.log('📱 Детекция тряски активирована!');
             this.updateShakeToggleState();
             this.updateAccelerometerButton();
+            
+            // Автоматически активируем акселерометр для бильярда
+            console.log('🔧 Автоматически активируем акселерометр бильярда (Android)');
+            this.setupBilliardAccelerometer();
         }
     }
 
@@ -3182,8 +3204,14 @@ class AnonFarm {
             lastUpdate = now;
         };
 
-        window.addEventListener('devicemotion', this.billiardMotionHandler, false);
-        console.log('✅ Акселерометр бильярда настроен');
+        // Добавляем обработчик только если его еще нет
+        if (!this.billiardMotionHandlerAdded) {
+            window.addEventListener('devicemotion', this.billiardMotionHandler, false);
+            this.billiardMotionHandlerAdded = true;
+            console.log('✅ Акселерометр бильярда настроен');
+        } else {
+            console.log('✅ Акселерометр бильярда уже настроен');
+        }
     }
 
     // Игровой цикл бильярда
