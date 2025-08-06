@@ -1346,21 +1346,11 @@ class AnonFarm {
             <span class="shake-text">SHAKE</span>
         `;
         
-        // Создаем кнопку настроек тряски
-        const shakeSettingsBtn = document.createElement('button');
-        shakeSettingsBtn.id = 'shakeSettingsBtn';
-        shakeSettingsBtn.className = 'shake-settings-button';
-        shakeSettingsBtn.innerHTML = `
-            <span class="settings-icon">🔧</span>
-        `;
-        shakeSettingsBtn.title = 'Запросить разрешение на тряску';
-        
-        // Добавляем кнопки после кнопки фермы
+        // Добавляем кнопку SHAKE после кнопки фермы
         const farmButton = document.getElementById('farmButton');
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'shake-buttons-container';
         buttonContainer.appendChild(shakeToggle);
-        buttonContainer.appendChild(shakeSettingsBtn);
         farmButton.parentNode.insertBefore(buttonContainer, farmButton.nextSibling);
         
         // Обновляем состояние кнопки
@@ -1406,33 +1396,6 @@ class AnonFarm {
                 }
                 this.updateAccelerometerButton();
             }
-        });
-        
-        // Обработчик клика для кнопки настроек тряски
-        shakeSettingsBtn.addEventListener('click', () => {
-            console.log('🔧 Кнопка настроек тряски нажата - запрашиваем разрешение');
-            
-            // Проверяем, поддерживается ли DeviceMotion
-            if (!window.DeviceMotionEvent) {
-                this.showNotification('📱 Ваше устройство не поддерживает тряску телефона', 'error');
-                return;
-            }
-            
-            // Проверяем, нужны ли разрешения
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                this.showNotification('🔧 Запрашиваем разрешение на тряску...', 'info');
-                // Принудительно запрашиваем разрешение независимо от состояния
-                this.initShakeDetection(true);
-            } else {
-                // Android и другие устройства - работают сразу
-                this.showNotification('📱 Тряска телефона активирована!', 'success');
-                this.initShakeDetection(true);
-            }
-            
-            // Обновляем состояние кнопки после запроса
-            setTimeout(() => {
-                this.updateShakeToggleState();
-            }, 1000);
         });
     }
     
