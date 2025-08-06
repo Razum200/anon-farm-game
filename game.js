@@ -1351,6 +1351,18 @@ class AnonFarm {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'shake-buttons-container';
         buttonContainer.appendChild(shakeToggle);
+        
+        // Добавляем кнопку акселерометра для бильярда на ферму
+        const farmAccelerometerBtn = document.createElement('button');
+        farmAccelerometerBtn.id = 'farmAccelerometerBtn';
+        farmAccelerometerBtn.className = 'farm-accelerometer-button';
+        farmAccelerometerBtn.innerHTML = `
+            <span class="accelerometer-icon">📱</span>
+            <span class="accelerometer-text">Акселерометр</span>
+        `;
+        farmAccelerometerBtn.title = 'Управление акселерометром бильярда';
+        buttonContainer.appendChild(farmAccelerometerBtn);
+        
         farmButton.parentNode.insertBefore(buttonContainer, farmButton.nextSibling);
         
         // Обновляем состояние кнопки
@@ -1397,8 +1409,40 @@ class AnonFarm {
                 this.updateAccelerometerButton();
             }
         });
+        
+        // Обработчик клика для кнопки акселерометра на ферме
+        farmAccelerometerBtn.addEventListener('click', () => {
+            console.log('🔧 Кнопка акселерометра на ферме нажата');
+            this.requestBilliardAccelerometerPermission();
+            this.soundSystem.play('navigation');
+        });
+        
+        // Обновляем состояние кнопки акселерометра на ферме
+        this.updateFarmAccelerometerButton();
     }
     
+    // Обновление состояния кнопки акселерометра на ферме
+    updateFarmAccelerometerButton() {
+        const farmAccelerometerBtn = document.getElementById('farmAccelerometerBtn');
+        if (!farmAccelerometerBtn) return;
+
+        const permission = localStorage.getItem('billiardAccelerometerPermission');
+        
+        if (permission === 'granted') {
+            farmAccelerometerBtn.querySelector('.accelerometer-text').textContent = 'Акселерометр ВКЛ';
+            farmAccelerometerBtn.style.borderColor = '#00ff00';
+            farmAccelerometerBtn.style.color = '#00ff00';
+        } else if (permission === 'denied') {
+            farmAccelerometerBtn.querySelector('.accelerometer-text').textContent = 'Акселерометр ОТКЛ';
+            farmAccelerometerBtn.style.borderColor = '#ff0000';
+            farmAccelerometerBtn.style.color = '#ff0000';
+        } else {
+            farmAccelerometerBtn.querySelector('.accelerometer-text').textContent = 'Акселерометр';
+            farmAccelerometerBtn.style.borderColor = '#ffff00';
+            farmAccelerometerBtn.style.color = '#ffff00';
+        }
+    }
+
     // Обновление состояния кнопки переключателя
     updateShakeToggleState() {
         const shakeToggle = document.getElementById('shakeToggle');
@@ -3076,6 +3120,7 @@ class AnonFarm {
                         this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
                         this.updateAccelerometerButton();
                         this.updateShakeToggleState();
+                        this.updateFarmAccelerometerButton();
                     } else {
                         localStorage.setItem('billiardAccelerometerPermission', 'denied');
                         localStorage.setItem('shakePermission', 'denied');
@@ -3083,12 +3128,14 @@ class AnonFarm {
                         this.showNotification('🎮 Акселерометр отключен. Используйте мышь для управления.', 'info');
                         this.updateAccelerometerButton();
                         this.updateShakeToggleState();
+                        this.updateFarmAccelerometerButton();
                     }
                 })
                 .catch(err => {
                     console.log('❌ Ошибка запроса разрешения акселерометра бильярда:', err);
                     this.showNotification('🎮 Ошибка настройки акселерометра', 'error');
                     this.updateAccelerometerButton();
+                    this.updateFarmAccelerometerButton();
                 });
         } else {
             // Для устройств без запроса разрешения
@@ -3098,6 +3145,7 @@ class AnonFarm {
             this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
             this.updateAccelerometerButton();
             this.updateShakeToggleState();
+            this.updateFarmAccelerometerButton();
         }
     }
 
@@ -3121,6 +3169,9 @@ class AnonFarm {
             accelerometerButton.style.borderColor = '#ffff00';
             accelerometerButton.style.color = '#ffff00';
         }
+        
+        // Также обновляем кнопку на ферме
+        this.updateFarmAccelerometerButton();
     }
 
     // Настройка акселерометра для бильярда
