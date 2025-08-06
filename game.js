@@ -1405,25 +1405,11 @@ class AnonFarm {
                 console.log('🔧 Включаем тряску, вызываем initShakeDetection(true)');
                 // Переинициализируем детекцию тряски с возможностью запроса разрешения
                 this.initShakeDetection(true);
-                
-                // Также активируем акселерометр для бильярда если разрешение уже есть
-                const permission = localStorage.getItem('shakePermission');
-                if (permission === 'granted') {
-                    console.log('🔧 Разрешение уже есть, активируем акселерометр бильярда');
-                    this.setupBilliardAccelerometer();
-                    this.updateAccelerometerButton();
-                }
             } else {
                 this.showNotification('📱 Тряска телефона отключена!', 'info');
                 console.log('🔧 Отключаем тряску, удаляем event listener');
                 // Удаляем слушатель событий тряски при отключении
                 window.removeEventListener('devicemotion', this.handleMotion);
-                
-                // Также отключаем акселерометр бильярда
-                if (this.billiardMotionHandler) {
-                    window.removeEventListener('devicemotion', this.billiardMotionHandler, false);
-                }
-                this.updateAccelerometerButton();
             }
         });
         
@@ -1661,11 +1647,6 @@ class AnonFarm {
                                 console.log('📱 Разрешение на тряску получено!');
                                 this.showNotification('📱 Тряска телефона активирована!', 'success');
                                 this.updateShakeToggleState();
-                                this.updateAccelerometerButton();
-                                
-                                // Автоматически активируем акселерометр для бильярда
-                                console.log('🔧 Автоматически активируем акселерометр бильярда');
-                                this.setupBilliardAccelerometer();
                             } else {
                                 localStorage.setItem('shakePermission', 'denied');
                                 localStorage.setItem('billiardAccelerometerPermission', 'denied');
@@ -1673,7 +1654,6 @@ class AnonFarm {
                                 this.showNotification('📱 Разрешение отклонено. Нажмите SHAKE еще раз для повторного запроса.', 'info');
                                 this.showIPhonePermissionInstructions();
                                 this.updateShakeToggleState();
-                                this.updateAccelerometerButton();
                             }
                         })
                         .catch(console.error);
@@ -1698,11 +1678,6 @@ class AnonFarm {
             localStorage.setItem('billiardAccelerometerPermission', 'granted');
             console.log('📱 Детекция тряски активирована!');
             this.updateShakeToggleState();
-            this.updateAccelerometerButton();
-            
-            // Автоматически активируем акселерометр для бильярда
-            console.log('🔧 Автоматически активируем акселерометр бильярда (Android)');
-            this.setupBilliardAccelerometer();
         }
     }
 
@@ -3068,6 +3043,18 @@ class AnonFarm {
                 this.soundSystem.play('navigation');
             });
         }
+
+        // Кнопка "Играть" для бильярда
+        const gameButton = document.getElementById('toggleBilliardGame');
+        if (gameButton) {
+            // Обновляем состояние кнопки
+            this.updateBilliardGameButton();
+            
+            gameButton.addEventListener('click', () => {
+                this.toggleBilliardGame();
+                this.soundSystem.play('navigation');
+            });
+        }
         
         // Запуск игрового цикла
         console.log('🎮 Запуск игрового цикла бильярда...');
@@ -3169,6 +3156,43 @@ class AnonFarm {
             this.updateAccelerometerButton();
             this.updateShakeToggleState();
             this.updateFarmAccelerometerButton();
+        }
+    }
+
+    // Переключение игры бильярда
+    toggleBilliardGame() {
+        const currentState = localStorage.getItem('billiardGameEnabled') !== 'false';
+        const newState = !currentState;
+        
+        localStorage.setItem('billiardGameEnabled', newState.toString());
+        this.updateBilliardGameButton();
+        
+        if (newState) {
+            this.showNotification('🎮 Бильярд включен!', 'success');
+            console.log('🎮 Включаем бильярд');
+        } else {
+            this.showNotification('🎮 Бильярд отключен!', 'info');
+            console.log('🎮 Отключаем бильярд');
+        }
+    }
+
+    // Обновление состояния кнопки игры бильярда
+    updateBilliardGameButton() {
+        const gameButton = document.getElementById('toggleBilliardGame');
+        if (!gameButton) return;
+
+        const isEnabled = localStorage.getItem('billiardGameEnabled') !== 'false';
+        
+        if (isEnabled) {
+            gameButton.textContent = '🎮 Остановить';
+            gameButton.style.borderColor = '#00ff00';
+            gameButton.style.color = '#00ff00';
+            gameButton.style.background = 'linear-gradient(45deg, rgba(0,255,0,0.2), rgba(0,255,255,0.2))';
+        } else {
+            gameButton.textContent = '🎮 Играть';
+            gameButton.style.borderColor = '#00ffff';
+            gameButton.style.color = '#00ffff';
+            gameButton.style.background = 'linear-gradient(45deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2))';
         }
     }
 
@@ -3682,9 +3706,12 @@ class AnonFarm {
     // Активация/деактивация бильярда при переключении страниц
     setBilliardActive(active) {
         console.log(`🎱 Бильярд ${active ? 'активирован' : 'деактивирован'}`);
-        this.billiardActive = active;
         
-        if (active) {
+        // Проверяем, включена ли игра бильярда
+        const gameEnabled = localStorage.getItem('billiardGameEnabled') !== 'false';
+        
+        if (active && gameEnabled) {
+            this.billiardActive = true;
             if (!this.billiardCanvas) {
                 console.log('🎱 Переинициализация бильярда...');
                 this.initBilliard();
@@ -3700,8 +3727,8 @@ class AnonFarm {
                 }, 1000); // Небольшая задержка
             }
         } else {
-            // При деактивации можно очистить ресурсы если нужно
-            console.log('🎱 Бильярд деактивирован');
+            this.billiardActive = false;
+            console.log('🎱 Бильярд деактивирован или игра отключена');
         }
     }
 
