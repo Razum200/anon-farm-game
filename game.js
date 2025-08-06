@@ -3715,15 +3715,6 @@ class AnonFarm {
         document.getElementById('hitButton').addEventListener('click', () => this.hit());
         document.getElementById('standButton').addEventListener('click', () => this.stand());
         document.getElementById('doubleButton').addEventListener('click', () => this.double());
-
-        // Выбор режима
-        document.querySelectorAll('.mode-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                document.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
-                e.target.closest('.mode-button').classList.add('active');
-                this.soundSystem.play('navigation');
-            });
-        });
     }
 
     // Увеличение ставки
@@ -4102,29 +4093,7 @@ class AnonFarm {
         });
     }
 
-    switchGameMode(mode) {
-        this.pvpGame.gameMode = mode;
-        
-        // Обновляем кнопки
-        document.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
-        document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-        
-        // Показываем/скрываем интерфейсы
-        const blackjackTable = document.querySelector('.blackjack-table');
-        const pvpInterface = document.querySelector('.pvp-interface');
-        
-        if (mode === 'pvp') {
-            blackjackTable.style.display = 'none';
-            pvpInterface.style.display = 'block';
-            this.loadAvailableGames();
-        } else {
-            blackjackTable.style.display = 'block';
-            pvpInterface.style.display = 'none';
-            this.stopPvPPolling();
-        }
-        
-        this.soundSystem.play('navigation');
-    }
+
 
     increasePvPBet() {
         const maxBet = Math.min(1000000, this.gameData.tokens);
