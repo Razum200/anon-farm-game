@@ -1612,15 +1612,20 @@ class AnonFarm {
                             if (permissionState === 'granted') {
                                 window.addEventListener('devicemotion', this.handleMotion, false);
                                 localStorage.setItem('shakePermission', 'granted');
+                                // Также сохраняем разрешение для бильярда
+                                localStorage.setItem('billiardAccelerometerPermission', 'granted');
                                 console.log('📱 Разрешение на тряску получено!');
                                 this.showNotification('📱 Тряска телефона активирована!', 'success');
                                 this.updateShakeToggleState();
+                                this.updateAccelerometerButton();
                             } else {
                                 localStorage.setItem('shakePermission', 'denied');
+                                localStorage.setItem('billiardAccelerometerPermission', 'denied');
                                 console.log('📱 Разрешение на тряску отклонено');
                                 this.showNotification('📱 Разрешение отклонено. Нажмите SHAKE еще раз для повторного запроса.', 'info');
                                 this.showIPhonePermissionInstructions();
                                 this.updateShakeToggleState();
+                                this.updateAccelerometerButton();
                             }
                         })
                         .catch(console.error);
@@ -1641,8 +1646,11 @@ class AnonFarm {
         } else if (shakeEnabled) {
             // Android и другие устройства - работают сразу
             window.addEventListener('devicemotion', this.handleMotion, false);
+            localStorage.setItem('shakePermission', 'granted');
+            localStorage.setItem('billiardAccelerometerPermission', 'granted');
             console.log('📱 Детекция тряски активирована!');
             this.updateShakeToggleState();
+            this.updateAccelerometerButton();
         }
     }
 
@@ -3047,12 +3055,13 @@ class AnonFarm {
         if (window.DeviceMotionEvent) {
             console.log('🎮 Акселерометр поддерживается, настраиваем...');
             
-            // Проверяем сохраненное разрешение для бильярда
+            // Проверяем общее разрешение (может быть получено через тряску)
+            const generalPermission = localStorage.getItem('shakePermission');
             const billiardPermission = localStorage.getItem('billiardAccelerometerPermission');
             
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                if (billiardPermission === 'granted') {
-                    console.log('✅ Разрешение на акселерометр бильярда уже получено');
+                if (generalPermission === 'granted' || billiardPermission === 'granted') {
+                    console.log('✅ Разрешение на акселерометр уже получено');
                     this.setupBilliardAccelerometer();
                 } else {
                     console.log('🎮 Запрашиваем разрешение на акселерометр бильярда...');
@@ -3075,15 +3084,20 @@ class AnonFarm {
                 .then(permissionState => {
                     if (permissionState === 'granted') {
                         localStorage.setItem('billiardAccelerometerPermission', 'granted');
+                        // Также сохраняем разрешение для тряски
+                        localStorage.setItem('shakePermission', 'granted');
                         console.log('✅ Разрешение на акселерометр бильярда получено');
                         this.setupBilliardAccelerometer();
                         this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
                         this.updateAccelerometerButton();
+                        this.updateShakeToggleState();
                     } else {
                         localStorage.setItem('billiardAccelerometerPermission', 'denied');
+                        localStorage.setItem('shakePermission', 'denied');
                         console.log('❌ Разрешение на акселерометр бильярда отклонено');
                         this.showNotification('🎮 Акселерометр отключен. Используйте мышь для управления.', 'info');
                         this.updateAccelerometerButton();
+                        this.updateShakeToggleState();
                     }
                 })
                 .catch(err => {
@@ -3094,9 +3108,11 @@ class AnonFarm {
         } else {
             // Для устройств без запроса разрешения
             localStorage.setItem('billiardAccelerometerPermission', 'granted');
+            localStorage.setItem('shakePermission', 'granted');
             this.setupBilliardAccelerometer();
             this.showNotification('🎮 Акселерометр бильярда активирован!', 'success');
             this.updateAccelerometerButton();
+            this.updateShakeToggleState();
         }
     }
 
@@ -3610,8 +3626,9 @@ class AnonFarm {
             }
             
             // Проверяем разрешение акселерометра при активации
+            const generalPermission = localStorage.getItem('shakePermission');
             const billiardPermission = localStorage.getItem('billiardAccelerometerPermission');
-            if (billiardPermission !== 'granted' && window.DeviceMotionEvent) {
+            if (generalPermission !== 'granted' && billiardPermission !== 'granted' && window.DeviceMotionEvent) {
                 console.log('🎱 Запрашиваем разрешение акселерометра при активации бильярда...');
                 setTimeout(() => {
                     this.requestBilliardAccelerometerPermission();
